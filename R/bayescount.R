@@ -1,4 +1,4 @@
-bayescount <- function (name = NA, data = NA, setnames = NA, div = 1, model = c("ZILP"), burnin = 5000, updates = c(10000,100000,500000), jags = "jags", rownames = FALSE, remove.zeros = TRUE, remove.missing = TRUE, test = TRUE, alt.prior = FALSE, write.file = TRUE, adjust.mean = FALSE, crash.retry = 1, silent.jags = FALSE, likelihood=FALSE)
+bayescount <- function (name = NA, data = NA, setnames = NA, div = 1, model = c("ZILP"), burnin = 5000, updates = c(10000,100000,500000), jags = findjags(), rownames = FALSE, remove.zeros = TRUE, remove.missing = TRUE, test = TRUE, alt.prior = FALSE, write.file = TRUE, adjust.mean = FALSE, crash.retry = 1, silent.jags = FALSE, likelihood=FALSE)
 {
 
 datanames <- setnames
@@ -32,8 +32,11 @@ if((crash.retry != as.integer(crash.retry)) | (crash.retry < 0)){
 	stop("Parameter invalid")
 }
 
-model <- switch(model, P="SP", ZIP="ZISP", model)
+model <- toupper(model)
 
+for(i in 1:length(model)){
+	model[i] <- switch(model[i], P="SP", ZIP="ZISP", model[i])
+}
 models <- c("SP", "ZISP", "GP", "ZIGP", "LP", "ZILP", "WP", "ZIWP", "IP")
 modelsfull <- c("single Poisson", "zero-inflated single Poisson", "gamma Poisson", "zero-inflated gamma Poisson", "lognormal Poisson", "zero-inflated lognormal Poisson", "Weibull Poisson", "zero-inflated Weibull Poisson", "independant Poisson")
 
@@ -41,7 +44,7 @@ if(class(alt.prior)=="character"){
 	stop("'alt.prior' must be either TRUE or FALSE for bayescount().  Use bayescount.single() for custom priors")
 }
 
-if(model[1]=="all") model <- models
+if(model[1]=="ALL") model <- models
 
 if((length(model) == 0) | (length(model) > length(models)) | sum(is.na(model)) > 0){
 	cat("Invalid model selection.  Please choose from the following models: ", sep="")

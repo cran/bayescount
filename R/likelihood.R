@@ -2,6 +2,8 @@ likelihood <- function(model=stop("Please specify a distribution"), data=stop("D
 	
 	## Cheat to stop function warning of non-zero inflated model when called from bayescount.single():
 	
+	model <- toupper(model)
+	
 	zi.warn <- TRUE
 	
 	if(silent=="noziwarnTRUE"){
@@ -66,9 +68,12 @@ likelihood <- function(model=stop("Please specify a distribution"), data=stop("D
 	
 	guitest <- testJAGS(silent=TRUE)
 	
+	#if(guitest$os=='windows' | (guitest$R.GUI == "AQUA" & guitest$R.package.type == "mac.binary")) macgui <- TRUE else macgui <- FALSE
+	
 	if(guitest$R.GUI == "AQUA" & guitest$R.package.type == "mac.binary") macgui <- TRUE else macgui <- FALSE
 	
 	###  The GUI version of R on mac currently doesn't support destructive backspace or carriage return, so the following is an alternative way of watching progress for Mac GUI
+	##  later discovered that Windows doesn't handle them properly either - not sure about this now
 	
 	sequence <- pmin(round((1:iterations) * (chain.length / iterations), digits=0), chain.length)
 	iters <- length(sequence)	
@@ -94,8 +99,8 @@ likelihood <- function(model=stop("Please specify a distribution"), data=stop("D
 	limits.data <- data
 	limits.data[limits.data==0] <- 1
 	
-	integrate.min <- qgamma(0.0001, shape=limits.data, rate=1)
-	integrate.max <- qgamma(0.9999, shape=limits.data, rate=1)
+	integrate.min <- qgamma(0.001, shape=limits.data, rate=1)
+	integrate.max <- qgamma(0.999, shape=limits.data, rate=1)
 	
 	integrate.min[data==0] <- 0
 	
@@ -149,7 +154,7 @@ likelihood <- function(model=stop("Please specify a distribution"), data=stop("D
 			if(iteration!=1){
 				cat("\b\r")
 			}
-			cat(round(percent.complete*100), "% complete, approximately ", time.remaining, " remaining\n", sep="")
+			cat(round(percent.complete*100), "% complete, approximately ", time.remaining, " remaining", sep="")
 		
 		}
 	}
@@ -274,6 +279,8 @@ likelihood <- function(model=stop("Please specify a distribution"), data=stop("D
 			lsd <- newlnorms[,2]
 		}
 		
+		suppressWarnings({
+		
 		if(zero.inflation==TRUE){
 		
 			for(iteration in 1:iters){
@@ -282,7 +289,7 @@ likelihood <- function(model=stop("Please specify a distribution"), data=stop("D
 					
 					f <- function(lambda) dpois(data[datapoint], lambda) * dlnorm(lambda, lmean[sequence[iteration]], lsd[sequence[iteration]])
 									
-					results[iteration,datapoint] <- log(((data[datapoint]==0) * (1 - prob[sequence[iteration]])) + (prob[sequence[iteration]] * integrate(f, integrate.min[datapoint], integrate.max[datapoint], stop.on.error=FALSE)$value))
+					results[iteration,datapoint] <- try(log(((data[datapoint]==0) * (1 - prob[sequence[iteration]])) + (prob[sequence[iteration]] * integrate(f, integrate.min[datapoint], integrate.max[datapoint], stop.on.error=FALSE)$value)), silent=TRUE)
 				
 				}
 			}
@@ -295,13 +302,14 @@ likelihood <- function(model=stop("Please specify a distribution"), data=stop("D
 					
 					f <- function(lambda) dpois(data[datapoint], lambda) * dlnorm(lambda, lmean[sequence[iteration]], lsd[sequence[iteration]])
 			
-					results[iteration,datapoint] <- log(integrate(f,integrate.min[datapoint], integrate.max[datapoint], stop.on.error=FALSE)$value)
+					results[iteration,datapoint] <- try(log(integrate(f,integrate.min[datapoint], integrate.max[datapoint], stop.on.error=FALSE)$value), silent=TRUE)
 					
 				
 				}
 			}
 		
 		}
+		results <- matrix(data=as.numeric(results), nrow=length(results[,1]), ncol=length(results[1,]))})
 		
 		likelihoods <- apply(results, 1, sum)
 }
@@ -362,6 +370,8 @@ likelihood <- function(model=stop("Please specify a distribution"), data=stop("D
 			cat("The value for variance provided will be ignored using the gamma Poisson model\n")
 		}
 		
+		suppressWarnings({
+		
 		if(zero.inflation==TRUE){
 		
 			for(iteration in 1:iters){
@@ -370,7 +380,7 @@ likelihood <- function(model=stop("Please specify a distribution"), data=stop("D
 					
 					f <- function(lambda) dpois(data[datapoint], lambda) * dgamma(lambda, shape=shape[sequence[iteration]], scale=scale[sequence[iteration]])
 			
-					results[iteration,datapoint] <- log(((data[datapoint]==0) * (1 - prob[sequence[iteration]])) + (prob[sequence[iteration]] * integrate(f, integrate.min[datapoint], integrate.max[datapoint], stop.on.error=FALSE)$value))
+					results[iteration,datapoint] <- try(log(((data[datapoint]==0) * (1 - prob[sequence[iteration]])) + (prob[sequence[iteration]] * integrate(f, integrate.min[datapoint], integrate.max[datapoint], stop.on.error=FALSE)$value)), silent=TRUE)
 				
 				}
 			}
@@ -383,12 +393,13 @@ likelihood <- function(model=stop("Please specify a distribution"), data=stop("D
 					
 					f <- function(lambda) dpois(data[datapoint], lambda) * dgamma(lambda, shape=shape[sequence[iteration]], scale=scale[sequence[iteration]])
 			
-					results[iteration,datapoint] <- log(integrate(f, integrate.min[datapoint], integrate.max[datapoint], stop.on.error=FALSE)$value)
+					results[iteration,datapoint] <- try(log(integrate(f, integrate.min[datapoint], integrate.max[datapoint], stop.on.error=FALSE)$value), silent=TRUE)
 				
 				}
 			}
 		
 		}
+		results <- matrix(data=as.numeric(results), nrow=length(results[,1]), ncol=length(results[1,]))})
 		
 		likelihoods <- apply(results, 1, sum)
 		
@@ -450,6 +461,8 @@ likelihood <- function(model=stop("Please specify a distribution"), data=stop("D
 			cat("The value for variance provided will be ignored using the Weibull Poisson model\n")
 		}
 		
+		suppressWarnings({
+		
 		if(zero.inflation==TRUE){
 		
 			for(iteration in 1:iters){
@@ -458,7 +471,7 @@ likelihood <- function(model=stop("Please specify a distribution"), data=stop("D
 					
 					f <- function(lambda) dpois(data[datapoint], lambda) * dweibull(lambda, shape=shape[sequence[iteration]], scale=scale[sequence[iteration]])
 			
-					results[iteration,datapoint] <- log(((data[datapoint]==0) * (1 - prob[sequence[iteration]])) + (prob[sequence[iteration]] * integrate(f, integrate.min[datapoint], integrate.max[datapoint], stop.on.error=FALSE)$value))
+					results[iteration,datapoint] <- try(log(((data[datapoint]==0) * (1 - prob[sequence[iteration]])) + (prob[sequence[iteration]] * integrate(f, integrate.min[datapoint], integrate.max[datapoint], stop.on.error=FALSE)$value)), silent=TRUE)
 				
 				}
 			}
@@ -471,13 +484,14 @@ likelihood <- function(model=stop("Please specify a distribution"), data=stop("D
 					
 					f <- function(lambda) dpois(data[datapoint], lambda) * dweibull(lambda, shape=shape[sequence[iteration]], scale=scale[sequence[iteration]])
 			
-					results[iteration,datapoint] <- log(integrate(f, integrate.min[datapoint], integrate.max[datapoint], stop.on.error=FALSE)$value)
+					results[iteration,datapoint] <- try(log(integrate(f, integrate.min[datapoint], integrate.max[datapoint], stop.on.error=FALSE)$value), silent=TRUE)
 				
 				}
 			}
 		
 		}
-		
+		results <- matrix(data=as.numeric(results), nrow=length(results[,1]), ncol=length(results[1,]))})
+		assign('gresults', results, pos=.GlobalEnv)
 		likelihoods <- apply(results, 1, sum)
 		
 }
@@ -486,6 +500,8 @@ likelihood <- function(model=stop("Please specify a distribution"), data=stop("D
 	if(log==FALSE){
 		likelihoods <- exp(likelihoods)
 	}
+	if(silent==FALSE) cat("\n")
+	if(any(is.na(results)) && silent==FALSE && any(c(model=="WP", model=="GP", model=="LP"))) cat("Error:  The likelihood could not be calculated at one or more iterations because an infinitely small likelihood was integrated for one or more datapoints at these iterations\n")
 	
 	if(raw.output==TRUE){
 		return(list(likelihood=likelihoods, iteration=sequence))
@@ -493,7 +509,11 @@ likelihood <- function(model=stop("Please specify a distribution"), data=stop("D
 		if(length(likelihoods)==1){
 			return(likelihoods)
 		}else{
-			return(quantile(likelihoods, probs=c(0.025, 0.5, 0.975)))
+			if(any(is.na(results))){
+				return(quantile(NA, probs=c(0.025, 0.5, 0.975), na.rm=TRUE))
+			}else{
+				return(quantile(likelihoods, probs=c(0.025, 0.5, 0.975)))
+			}
 		}
 	}
 

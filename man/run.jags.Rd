@@ -3,13 +3,13 @@
 \alias{run.JAGS}
 \title{RUN A USER SPECIFIED MODEL IN JAGS FROM WITHIN R}
 \description{
-   Allows any user specified model to be run in JAGS, with the MCMC output returned as a list of MCMC objects for each chain and the end state of each chain.  Data and initial values must be supplied in the R dump format (see dump.format() for an easy way to do this).  A character vector of variables to monitor must also be supplied.  Requires Just Another Gibbs Sampler (JAGS).  When used with the GUI interface for R in Windows, this function spawns lots of terminal windows in which JAGS is run (if silent.jags is FALSE), which makes it difficult to track the progress of the simulations.  To avoid this, set silent.jags to TRUE, or run the function from the terminal version of R.
+   Allows any user specified model to be run in JAGS, with the MCMC output returned as a list of MCMC objects for each chain and the end state of each chain.  Data and initial values must be supplied in the R dump format (see dump.format() for an easy way to do this).  A character vector of variables to monitor must also be supplied.  Requires Just Another Gibbs Sampler (JAGS).  The GUI interface for R in Windows may not continually refresh the output window, making it difficult to track the progress of the simulation (if silent.jags is FALSE).  To avoid this, you can run the function from the terminal version of R (located in the Program Files/R/bin/ folder).
 }
 \usage{
 run.jags(data=stop("No data supplied"), model=stop("No model supplied"), 
    inits = stop("No inital values supplied"), 
    monitor = stop("No monitored variables supplied"), 
-   burnin = 5000, updates = 10000, jags="jags", 
+   burnin = 5000, updates = 10000, jags=findjags(), 
    silent.jags = FALSE, check.conv=TRUE)}
 \arguments{
    \item{data}{a character string in the R dump format containing the data.  No default.}
@@ -18,7 +18,7 @@ run.jags(data=stop("No data supplied"), model=stop("No model supplied"),
    \item{monitor}{a character vector of the names of variables to monitor.  No default.}
    \item{burnin}{the number of burnin iterations (not sampled) to use (numeric).  Default 5000 iterations.}
    \item{updates}{the number of sampling iterations to use (numeric).  Default 10000 iterations.}
-   \item{jags}{the system call or path for activating JAGS.  Default for Linux is 'jags', in Windows try 'C:/JAGS-0.90/jags.exe' etc.}
+   \item{jags}{the system call or path for activating JAGS.  Default calls findjags() to attempt to locate JAGS on your system.}
    \item{silent.jags}{should the JAGS output be suppressed? (logical)  If TRUE, no indication of the progress of individual models is supplied.  Default FALSE.}
    \item{check.conv}{should the convergence be assessed after the model has completed?  If TRUE, each monitored variable will be assessed for a potential scale reduction factor of less than 1.05, which indicates convergence.  2 or more chains are required to assess convergence.  Default TRUE.}
 }
@@ -32,6 +32,7 @@ run.jags(data=stop("No data supplied"), model=stop("No model supplied"),
    \code{\link{dump.format}}
    \code{\link{run.model}}
    \code{\link{testjags}}
+   \code{\link{findjags}}
 }
 
 \author{Matthew Denwood \email{m.denwood@vet.gla.ac.uk} funded as part of the DEFRA VTRI project 0101.}
@@ -42,7 +43,7 @@ run.jags(data=stop("No data supplied"), model=stop("No model supplied"),
 \dontrun{
 # Simulate the data
 x <- 1:100
-y <- rnorm(length(true.x), 2*true.x + 10, 1)
+y <- rnorm(length(x), 2*x + 10, 1)
 
 # Model in the JAGS format
 model <- "model {

@@ -1,4 +1,4 @@
-run.model <- function(data=stop("No data supplied"), model=stop("No model specified"), burnin = 5000, updates = 10000, call.jags = TRUE, alt.prior=FALSE, jags="jags", silent.jags = FALSE, check.conv=TRUE, monitor.lambda=FALSE){
+run.model <- function(data=stop("No data supplied"), model=stop("No model specified"), burnin = 5000, updates = 10000, call.jags = TRUE, alt.prior = FALSE, jags = findjags(), silent.jags = FALSE, check.conv=TRUE, monitor.lambda=FALSE){
 
 
 ###  Currently only the IP model requires gamma monitored for the likelihood bit - others are integrated
@@ -9,6 +9,8 @@ if(monitor.lambda==TRUE && model!="IP"){
 
 counts <- data
 N <- length(counts)
+
+model <- toupper(model)
 
 models <- c("SP", "ZISP", "GP", "ZIGP", "LP", "ZILP", "WP", "ZIWP", "IP")
 modelsfull <- c("single Poisson", "zero-inflated single Poisson", "gamma Poisson", "zero-inflated gamma Poisson", "lognormal Poisson", "zero-inflated lognormal Poisson", "Weibull Poisson", "zero-inflated Weibull Poisson", "independant Poisson")

@@ -1,4 +1,4 @@
-run.jags <- function(data=stop("No data supplied"), model=stop("No model supplied"), inits = stop("No inital values supplied"), monitor = stop("No monitored variables supplied"), burnin = 5000, updates = 10000, jags="jags", silent.jags = FALSE, check.conv=TRUE){
+run.jags <- function(data=stop("No data supplied"), model=stop("No model supplied"), inits = stop("No inital values supplied"), monitor = stop("No monitored variables supplied"), burnin = 5000, updates = 10000, jags = findjags(), silent.jags = FALSE, check.conv=TRUE){
 
 if(burnin==0){
 	## Having problems with adaptive phase, so:
@@ -111,23 +111,25 @@ cat("Calling the simulation... (this may take some time)\n")
 
 jags.status <- testjags(jags, silent=TRUE)
 
-if (jags.status[[1]] == "windows"){
-	if(jags.status[[3]] == TRUE){
-		success <- system(paste(jags, " script.cmd", sep = ""), intern=TRUE, wait=TRUE)
+jags <- jags.status$JAGS.path
+
+if (jags.status$os == "windows"){
+	if(jags.status$popen.support == TRUE){
+		success <- system(paste(jags, " script.cmd", sep = ""), intern=silent.jags, wait=TRUE, ignore.stderr = !silent.jags, show.output.on.console = !silent.jags)
 	}else{
-		success <- system(paste(jags, " script.cmd", sep = ""), wait=TRUE)
+		success <- system(paste(jags, " script.cmd", sep = ""), ignore.stderr = !silent.jags, wait=TRUE, show.output.on.console = !silent.jags)
 	}
 }else{
-	if(silent.jags == FALSE && jags.status[[3]]==TRUE){
+	if(silent.jags == FALSE && jags.status$popen.support==TRUE){
 		success <- system(paste(jags, "< script.cmd", sep=""), ignore.stderr = FALSE)
 	}
-	if(silent.jags == TRUE && jags.status[[3]]==TRUE){
+	if(silent.jags == TRUE && jags.status$popen.support==TRUE){
 		success <- system(paste(jags, "< script.cmd", sep=""), intern=TRUE, ignore.stderr = TRUE)
 	}
-	if(silent.jags == FALSE && jags.status[[3]]==FALSE){
+	if(silent.jags == FALSE && jags.status$popen.support==FALSE){
 		success <- system(paste(jags, "< script.cmd", sep=""), ignore.stderr = FALSE)
 	}
-	if(silent.jags == TRUE && jags.status[[3]]==FALSE){
+	if(silent.jags == TRUE && jags.status$popen.support==FALSE){
 		success <- system(paste(jags, "< script.cmd > /dev/null", sep=""), ignore.stderr = TRUE)
 	}
 }
@@ -196,7 +198,7 @@ if(chains==2){
 		
 	if(achieved!=updates){
 		crashed <- TRUE
-		cat("Simulation crashed at ", as.numeric(length(new.one[,1])), " iterations", sep="")
+		cat("Simulation crashed at ", as.numeric(length(new.one[,1])), " iterations\n", sep="")
 	}
 	
 	input.data[[1]] <- new.one
@@ -211,7 +213,7 @@ if(chains==2){
 	}
 	if(sum(lengths.equal)!=0){
 		pastechains <- paste(chains[lengths[chains]==min(lengths)], collapse=", ")
-		cat("Warning:  Chain lengths not equal.  Simulation crashed at ", as.numeric(min(lengths / n.params)), " iterations for chain(s) ", pastechains, ".", sep="")
+		cat("Warning:  Chain lengths not equal.  Simulation crashed at ", as.numeric(min(lengths / n.params)), " iterations for chain(s) ", pastechains, ".\n", sep="")
 	}
 }
 
@@ -220,7 +222,7 @@ for(i in 1:chains){
 	filename <- paste("out", i, ".Rdump", sep="")
 	suppressWarnings(inputsuccess <- try(tempinput <- readLines(filename)))
 	if(class(inputsuccess)=="try-error"){
-		cat("Error reading output of chain ", i, ".", sep="")
+		cat("Error reading output of chain ", i, ".\n", sep="")
 		input.end[i] <- NA
 	}else{
 		input.end[i] <- ""

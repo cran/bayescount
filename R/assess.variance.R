@@ -1,5 +1,7 @@
 assess.variance <- function(model, alt.prior, l.95, u.95){
 
+model <- toupper(model)
+
 largeod <- FALSE
 
 if(model=="GP" | model=="ZIGP"){				

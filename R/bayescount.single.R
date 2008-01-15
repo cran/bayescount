@@ -1,4 +1,4 @@
-bayescount.single <- function(data = stop("Data must be specified"), model="ZILP", burnin=5000, updates=c(10000, 100000, 500000), jags = "jags", alt.prior = FALSE, adjust.mean = FALSE, silent.jags = FALSE, raw.output = FALSE, likelihood=FALSE){
+bayescount.single <- function(data = stop("Data must be specified"), model="ZILP", burnin=5000, updates=c(10000), jags = findjags(), alt.prior = FALSE, adjust.mean = FALSE, silent.jags = FALSE, raw.output = FALSE, likelihood=FALSE){
 
 if(!require(lattice)){
 	stop("The required library 'lattice' is not installed")
@@ -14,6 +14,8 @@ if(test[[2]][1]==FALSE){
 }
 
 updates <- sort(updates)
+
+model <- toupper(model)
 
 model <- switch(model, P="SP", ZIP="ZISP", model)
 
@@ -344,8 +346,13 @@ if(likelihood==TRUE){
 		cat("An error occured while computing the likelihood\n")
 		likeli <- list(NA, NA)
 	}
-	
-	likeli.an <- quantile(likeli[[1]], probs=c(0.025, 0.5, 0.975), na.rm=TRUE)
+	#print(sum(is.na(likeli[[1]])))
+	#assign('like', likeli, pos=.GlobalEnv)
+	if(any(is.na(likeli[[1]]))){
+		likeli.an <- quantile(NA, probs=c(0.025, 0.5, 0.975), na.rm=TRUE)
+	}else{
+		likeli.an <- quantile(likeli[[1]], probs=c(0.025, 0.5, 0.975))
+	}
 	results <- c(results, likelihood=likeli.an[1], likelihood=likeli.an[2], likelihood=likeli.an[3])
 }
 

@@ -11,7 +11,7 @@ likelihood(model, data, mean=NA, variance=NA,
    log=TRUE, silent=FALSE, raw.output=FALSE)
 }
 \arguments{
-   \item{model}{the distribution to fit to the data.  Choices are:  'IP', 'P', 'ZIP', 'G', 'ZIG', 'L', 'ZIL', 'W', 'ZIW', 'GP', 'ZIGP', 'LP', 'ZILP', 'WP', 'ZIWP'.  No default.}
+   \item{model}{the distribution to fit to the data.  Choices are:  'IP', 'P', 'ZIP', 'G', 'ZIG', 'L', 'ZIL', 'W', 'ZIW', 'GP', 'ZIGP', 'LP', 'ZILP', 'WP', 'ZIWP' (case insensitive).  No default.}
    \item{data}{a vector of data to fit the distribution to.  Count data for the count models, continuous data for the continuous distributions.}
    \item{mean}{a vector of mean values over which to calculate the likelihood.  Must be a matrix with number of columns equal to the number of datapoints for the IP model only, since using the IP model each datapoint has an independant mean (this is effectively a shortcut for repeating the likelihood function for each datapoint).  Mean is required for the IP, (ZI)P, (ZI)L, and (ZI)L models.  Otherwise ignored (with a warning if silent=FALSE).}
    \item{variance}{a vector of values for variance over which to calculate the likelihood, with length equal to length of mean.  Required for the (ZI)L, and (ZI)L models.  Otherwise ignored (with a warning if silent=FALSE).}
@@ -23,7 +23,7 @@ likelihood(model, data, mean=NA, variance=NA,
    \item{silent}{should warning messages and progress indicators be supressed?  Default FALSE.}
    \item{raw.output}{output a vector of length equal to the number of iterations representing the likelihood at each iteration if TRUE, or a summary of the results (median and 95 percent confidence interval) if FALSE.  Default FALSE.}
 }
-\value{The (log) likelihood is returned either as a vector of length equal to the number of iterations representing the likelihood at each iteration if raw.output==TRUE, or a summary of the results (median and 95% confidence interval) if raw.output==FALSE.  If only 1 iteration of values for mean/variance/shape/scale are provided, a single value for likelihood is output.}
+\value{The (log) likelihood is returned either as a vector of length equal to the number of iterations representing the likelihood at each iteration if raw.output==TRUE, or a summary of the results (median and 95% confidence interval) if raw.output==FALSE.  It is possible for the functions that use integrate to produce incalculable probabilities for some iterations, in which case the likelihood for these iterations are returned as missing data (and therefore the summary statistics for the whole simulation are also returned as missing data).  If only 1 iteration of values for mean/variance/shape/scale are provided, a single value for likelihood is output.}
 }
 \seealso{
    \code{\link{bayescount}}
