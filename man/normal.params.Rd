@@ -1,20 +1,20 @@
 \name{normal.params}
 \alias{normal.params}
-\title{CALCULATE THE NORMAL MEAN AND STANDARD DEVIATION USING THE LOG-NORMAL MEAN AND STANDARD DEVIATION}
+\title{Calculate the Normal Mean and Standard Deviation Using the Log-Normal Mean and Standard Deviation}
 \description{
    Function to calculate the equivalent values for the mean and standard deviation of a normal distribution from the mean and standard deviation of the log-normal distribution.  Outputs from this function can be used with the dnorm() function, and with the normal distribution in JAGS.
 }
 \usage{
-normal.params(log.mean, log.sd)}
+normal.params(log.mean, log.sd, coeff.variation=sqrt(exp(log.sd^2)-1))}
 \arguments{
-   \item{log.mean}{either a single value or vector of values for the mean of the log-normal distribution}
-   \item{log.sd}{either a single value or vector of values for the standard deviation of the log-normal distribution}
+   \item{log.mean}{either a single value or vector of values for the mean of the lognormal distribution.}
+   \item{log.sd}{either a single value or vector of values for the standard deviation of the lognormal distribution.  Ignored if values are supplied for coeff.variation.}
+   \item{coeff.variation}{either a single value or vector of values for the coefficient of dispersion.}
 }
-\value{Either a vector of length 2 representing the mean of the normal distribution as the first element and the standard deviation of the normal distribution as the second element, or a matrix with column 1 as the mean and column 2 as the standard deviation.
+\value{A list with elements representing the mean of the normal distribution, the standard deviation of the normal distribution, and the coefficient of variation.
 }
 \seealso{
-   \code{\link{bayescount}}
-   \code{\link{lnormal.params}}
+   \code{\link{bayescount}}, \code{\link{lnormal.params}}
 }
 
 \author{Matthew Denwood \email{m.denwood@vet.gla.ac.uk} funded as part of the DEFRA VTRI project 0101.}
@@ -24,11 +24,11 @@ normal.params(log.mean, log.sd)}
 \dontrun{
 lmean <- 2.5
 lsd <- 0.2
-mean <- normal.params(lmean,lsd)[1]
-sd <- normal.params(lmean,lsd)[2]
+mean <- normal.params(lmean,lsd)[[1]]
+sd <- normal.params(lmean,lsd)[[2]]
 
 curve(dlnorm(x, lmean, lsd), from=0, to=25)
-x11()
+dev.new()
 curve(dnorm(x, mean, sd), from=0, to=25)
 }
 

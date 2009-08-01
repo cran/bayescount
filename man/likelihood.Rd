@@ -1,8 +1,8 @@
 \name{likelihood}
 \alias{likelihood}
-\title{CALCULATE THE (LOG) LIKELIHOOD OF OBTAINING DATA FROM A DISTRIBUTION}
+\title{Calculate the (Log) Likelihood of Obtaining Data from a Distribution}
 \description{
-   Function to calculate the (log) likelihood of obtaining a set of data from one of the following distributions:  Poisson (P), gamma (G), lognormal (L), Weibull (W), gamma Poisson (GP), lognormal Poisson (LP), Weibull Poisson (WP), all with or without zero-inflation (ZI).  For mixture models, the likelihood is calculated for the data by integrating over each possible value of lambda for each data point, which may take some time for large datasets.  Note:  the likelihoods are proportional to, not equal to, the probability of obtaining the data, with a proportionality that is unique to each distribution.  It is therefore impossible to compare the likelihood between distributions, or even with the same distribution if zero-inflation is present in differing amounts.  *THIS SOFTWARE IS INTENDED FOR EDUCATIONAL PURPOSES ONLY AND SHOULD NOT BE RELIED UPON FOR REAL WORLD APPLICATIONS*
+   Function to calculate the (log) likelihood of obtaining a set of data from one of the following distributions:  Poisson (P), gamma (G), lognormal (L), Weibull (W), gamma Poisson (GP), lognormal Poisson (LP), Weibull Poisson (WP), all with or without zero-inflation (ZI).  For mixture models, the likelihood is calculated for the data by integrating over each possible value of lambda for each data point, which may take some time for large datasets.  *THIS SOFTWARE IS INTENDED FOR EDUCATIONAL PURPOSES ONLY AND SHOULD NOT BE RELIED UPON FOR REAL WORLD APPLICATIONS*
 }
 \usage{
 likelihood(model, data, mean=NA, variance=NA, 
@@ -23,12 +23,10 @@ likelihood(model, data, mean=NA, variance=NA,
    \item{silent}{should warning messages and progress indicators be supressed?  Default FALSE.}
    \item{raw.output}{output a vector of length equal to the number of iterations representing the likelihood at each iteration if TRUE, or a summary of the results (median and 95 percent confidence interval) if FALSE.  Default FALSE.}
 }
-\value{The (log) likelihood is returned either as a vector of length equal to the number of iterations representing the likelihood at each iteration if raw.output==TRUE, or a summary of the results (median and 95% confidence interval) if raw.output==FALSE.  It is possible for the functions that use integrate to produce incalculable probabilities for some iterations, in which case the likelihood for these iterations are returned as missing data (and therefore the summary statistics for the whole simulation are also returned as missing data).  If only 1 iteration of values for mean/variance/shape/scale are provided, a single value for likelihood is output.}
+\value{The (log) likelihood is returned either as a vector of length equal to the number of iterations representing the likelihood at each iteration if raw.output==TRUE, or a summary of the results (median, maximum and 95\% highest posterior density interval (see \code{\link[coda]{HPDinterval}}) if raw.output==FALSE.  It is possible for the functions that use integrate to produce incalculable probabilities for some iterations, in which case the likelihood for these iterations are returned as missing data (and therefore the summary statistics for the whole simulation are also returned as missing data).  If only 1 iteration of values for mean/variance/shape/scale are provided, a single value for likelihood is output.
 }
 \seealso{
-   \code{\link{bayescount}}
-   \code{\link{bayescount.single}}
-   \code{\link{maximise.likelihood} for a simple maximum likelihood solution using likelihood()}
+   \code{\link{bayescount}}, \code{\link{bayescount.single}}, \code{\link{maximise.likelihood} for a simple maximum likelihood solution using likelihood()}
 }
 
 \author{Matthew Denwood \email{m.denwood@vet.gla.ac.uk} funded as part of the DEFRA VTRI project 0101.}

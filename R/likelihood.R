@@ -27,9 +27,8 @@ likelihood <- function(model=stop("Please specify a distribution"), data=stop("D
 	}
 	
 	model <- switch(model, SP="P", IP="P", ZISP="ZIP", model)
-	
 	models <- c("P", "ZIP", "G", "ZIG", "L", "ZIL", "W", "ZIW", "GP", "ZIGP", "LP", "ZILP", "WP", "ZIWP")
-
+	
 	if((length(model) != 1) |  sum(is.na(model)) > 0 | sum(model==models)!=1){
 		if(silent==FALSE){
 			cat("Invalid model selection.  Please choose from ONE of the following distributions: ", sep="")
@@ -66,7 +65,20 @@ likelihood <- function(model=stop("Please specify a distribution"), data=stop("D
 		stop("The number of iterations to calculate the likelihood for must not be more than the length of the chain provided")
 	}
 	
-	guitest <- testJAGS(silent=TRUE)
+	s.info <- Sys.info()
+	p.info <- .Platform
+	
+	if(as.numeric(paste(R.version$major, R.version$minor, sep="")) < 26){
+    	stop("Please update your version of R to the latest available (> 2.6.0 required)")
+	}
+	
+	os <- p.info$OS.type
+	username <- as.character(s.info["user"])
+	rversion <- R.version$version
+	gui <- p.info$GUI
+	p.type <- p.info$pkgType
+	
+	guitest <- c("R.GUI"=gui, "R.package.type"=p.type, "R.version"=list(rversion))
 	
 	#if(guitest$os=='windows' | (guitest$R.GUI == "AQUA" & guitest$R.package.type == "mac.binary")) macgui <- TRUE else macgui <- FALSE
 	
@@ -154,7 +166,7 @@ likelihood <- function(model=stop("Please specify a distribution"), data=stop("D
 			if(iteration!=1){
 				cat("\b\r")
 			}
-			cat(round(percent.complete*100), "% complete, approximately ", time.remaining, " remaining", sep="")
+			cat(round(percent.complete*100), "% complete, approximately ", time.remaining, " remaining      ", sep="")
 		
 		}
 	}
@@ -221,13 +233,8 @@ likelihood <- function(model=stop("Please specify a distribution"), data=stop("D
 		
 		
 		newlnorms <- lnormal.params(mean, sqrt(variance))
-		if(length(mean)==1){
-			lmean <- newlnorms[1]
-			lsd	<- newlnorms[2]
-		}else{
-			lmean <- newlnorms[,1]
-			lsd <- newlnorms[,2]
-		}
+		lmean <- newlnorms[[1]]
+		lsd <- newlnorms[[2]]
 				
 		if(zero.inflation==TRUE){
 		
@@ -271,13 +278,8 @@ likelihood <- function(model=stop("Please specify a distribution"), data=stop("D
 		}
 		
 		newlnorms <- lnormal.params(mean, sqrt(variance))
-		if(length(mean)==1){
-			lmean <- newlnorms[1]
-			lsd	<- newlnorms[2]
-		}else{
-			lmean <- newlnorms[,1]
-			lsd <- newlnorms[,2]
-		}
+		lmean <- newlnorms[[1]]
+		lsd <- newlnorms[[2]]
 		
 		suppressWarnings({
 		
@@ -500,7 +502,7 @@ likelihood <- function(model=stop("Please specify a distribution"), data=stop("D
 	if(log==FALSE){
 		likelihoods <- exp(likelihoods)
 	}
-	if(silent==FALSE) cat("\n")
+	#if(silent==FALSE) cat("\n")
 	if(any(is.na(results)) && silent==FALSE && any(c(model=="WP", model=="GP", model=="LP"))) cat("Error:  The likelihood could not be calculated at one or more iterations because an infinitely small likelihood was integrated for one or more datapoints at these iterations\n")
 	
 	if(raw.output==TRUE){
@@ -510,10 +512,12 @@ likelihood <- function(model=stop("Please specify a distribution"), data=stop("D
 			return(likelihoods)
 		}else{
 			if(any(is.na(results))){
-				return(quantile(NA, probs=c(0.025, 0.5, 0.975), na.rm=TRUE))
+				likeli.an <- c(l.95=NA, median=NA, u.95=NA, MAX=NA)
 			}else{
-				return(quantile(likelihoods, probs=c(0.025, 0.5, 0.975)))
+				hpd <- HPDinterval(as.mcmc(likelihoods))
+				likeli.an <- c(l.95=hpd[1], median=median(likelihoods), u.95=hpd[2], MAX=max(likelihoods))
 			}
+			return(likeli.an)
 		}
 	}
 

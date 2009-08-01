@@ -1,0 +1,66 @@
+This version of the function is still being developed, and as such will almost certainly contain numerous bugs.  If you find one or more (gasp!), or if you have any comments/criticisms/questions about the function, then please feel free to email me at m.denwood@vet.gla.ac.uk.  Thanks!
+
+
+OPEN ISSUES
+
+
+BUGS
+
+None known.
+
+
+FEATURES TO BE IMPLEMENTED
+
+Implementation of a power analysis function for planning faecal sampling.
+
+
+
+
+VERSION HISTORY
+
+
+Version 0.9.0
+
+NEW FEATURES
+
+Functions for running JAGS developed into 'runjags' package, which is now a requirement for bayescount.
+
+Running of models to convergence and calculation of necessary run time is now handled using the autorun.jags function.
+
+NAMESPACE file used now
+
+Model specification for (ZI)GP and LP models slightly altered.  The new model specifications produce superior results.
+
+bayescount.single now calculates 95% credible intervals using highest posterior density estimates rather than quantiles
+
+Likelihood calculations now also return the maximum likelihood estimate
+
+Repeat counts can now be analysed (although the likelihood cannot be calculated with irregular numbers of counts or with any repeat counts for the Weibull models)
+
+Coefficient of variation can now be specified as a parameter to lnormal.params and normal.params, and functions now return lists rather than a matrix.
+
+FECRT function now implemented.  See ?fecrt
+
+Several other new features
+
+
+BUG FIXES
+
+Superficial changes to the feedback provided by the likelihood function.
+
+Superficial changes to wording of feedback provided by bayescount and bayescount.single.
+
+Several other bug fixes.
+
+
+OLDER VERSIONS
+
+Function to call JAGS for any given model/data/inits with any number of chains created November 2007.
+
+Modified to use JAGS 0.9.99 and lognormal / Weibul / indpendant Poisson models November 2007.  Also modified to extend rather than re-run for extra convergence iterations.
+
+Function to analyse faecal egg count data with either a (zero-inflated) Gamma Poisson, Lognormal Poisson, Weibul Poisson, independant Poisson or single Poisson model then check converegence with 2 chains created October 2007.
+
+Source script to handle/call function to analyse faecal egg count data created 3rd July 2007.
+
+

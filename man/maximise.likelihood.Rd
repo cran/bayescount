@@ -1,6 +1,6 @@
 \name{maximise.likelihood}
 \alias{maximise.likelihood}
-\title{CALCULATE THE MAXIMUM LIKELIHOOD PARAMETERS OF A CONTINUOUS OR COUNT DISTRIBUTION}
+\title{Calculate the Maximum Likelihood Parameters of a Continuous or Count Distribution}
 \description{
    Crude function to maximise the likelihood of one of the following distributions:  Poisson (P), gamma (G), lognormal (L), Weibull (W), gamma Poisson (GP), lognormal Poisson (LP), Weibull Poisson (WP), all with or without zero-inflation (ZI).  Uses the likelihood() function to calculate the likelihood at each iteration.  For mixture models, the likelihood is calculated for the data by integrating over each possible value of lambda for each data point, which may take some time for large datasets.  Starting values for each parameter are optional, but may improve the speed and reliability of the function if appropriate values are provided.  If missing, starting values will be calculated from the data.  This function is provided for interest only, and is vastly inferior as a data analysis tool to the Bayesian MCMC methods used by bayescount().  *THIS SOFTWARE IS INTENDED FOR EDUCATIONAL PURPOSES ONLY AND SHOULD NOT BE RELIED UPON FOR REAL WORLD APPLICATIONS*
 }
@@ -21,9 +21,7 @@ maximise.likelihood(data=stop("Data must be specified"), model=stop("Please spec
 \value{The values for each parameter at the maximum likelihood are output.  No standard error is given (Bayesian MCMC using bayescount() gives a much better analysis)
 }
 \seealso{
-   \code{\link{bayescount}}
-   \code{\link{bayescount.single}}
-   \code{\link{likelihood}}
+   \code{\link{bayescount}}, \code{\link{bayescount.single}}, \code{\link{likelihood}}
 }
 
 \author{Matthew Denwood \email{m.denwood@vet.gla.ac.uk} funded as part of the DEFRA VTRI project 0101.}

@@ -1,0 +1,8 @@
+citEntry("Manual{,
+    title = {bayescount: Bayesian analysis of count distributions using MCMC},
+    author = {Denwood, M.J.}
+    year = {2009},
+    note = {R package version 0.9.0},
+    url = {http://cran.r-project.org/web/packages/bayescount/},
+    }", "Denwood, M.J. (2009).  bayescount: Bayesian analysis of count distributions using MCMC.  R package version 0.9.0.  Available from http://cran.r-project.org/web/packages/bayescount/")
+
