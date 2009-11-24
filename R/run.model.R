@@ -1,4 +1,4 @@
-run.model <- function(data=stop("No data supplied"), model=stop("No model specified"), call.jags = TRUE, alt.prior = FALSE, monitor.lambda=FALSE, ...){
+run.model <- function(data=stop("No data supplied"), model=stop("No model specified"), call.jags = TRUE, alt.prior = FALSE, monitor.lambda=FALSE, monitor.deviance=FALSE, ...){
 	
 ###  Currently only the IP model requires gamma monitored for the likelihood bit - others are integrated
 
@@ -162,6 +162,9 @@ if(is.na(largestdispersion)) largestdispersion <- 5
 
 smallestdispersion <- max(smallestdispersion, 0.1)
 largestdispersion <- min(largestdispersion, 9)
+if(largestdispersion < 0.1) largestdispersion <- 0.1
+if(smallestdispersion > 5) smallestdispersion <- 5
+
 
 # FOR TESTING DIFFERENT MODELS:
 if(any(model==c(paste("G", 1:10, sep=""), paste("L", 1:10, sep="")))){
@@ -666,10 +669,9 @@ for(repeat in 1:R[N]){
 Count[row,repeat] ~ dpois(lambda[row]);
 }
 lambda[row] <- mean * gamma[row];
-gamma[row] ~ dgamma(a, a);
+gamma[row] ~ dgamma(a, a)T(10^-200,);
 
 }
-
 a <- 1 / ia;
 
 # Priors
@@ -690,7 +692,7 @@ Count[row,repeat] ~ dpois(lambda[row]);
 }
 lambda[row] <- probpos[row] * mean * gamma[row];
 probpos[row] ~ dbern(prob);
-gamma[row] ~ dgamma(a, a);
+gamma[row] ~ dgamma(a, a)T(10^-200,);
 
 }
 
@@ -887,6 +889,8 @@ if(monitor.lambda==TRUE){
 	monitors <- c(monitors, "gamma")#, "probpos")
 }
 }
+
+if(monitor.deviance) monitors <- c(monitors, "deviance")
 
 datastring <- dump.format(list(N=N, R=R, Count=counts))
 

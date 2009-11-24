@@ -1,3 +1,5 @@
-export(bayescount, bayescount.single, fecrt, FECRT, likelihood, maximise.likelihood, normal.params, lnormal.params, run.model)
+export(bayescount, bayescount.single, fecrt, fecrt.power, fecrt.power.limits, fec.power, fec.power.limits, FECRT, FECRT.power, FECRT.power.limits, FEC.power, FEC.power.limits, likelihood, maximise.likelihood, normal.params, lnormal.params, run.model)
+
+useDynLib(bayescount)
 
 S3method(print, fecrt.results)

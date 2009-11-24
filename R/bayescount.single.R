@@ -82,7 +82,7 @@ params.names <- switch(model, SP=c("mean"), ZISP=c("mean", "prob"), IP=c("mean",
 n.params <- switch(model, SP=1, ZISP=2, IP=2, LP=2, ZILP=3, GP=2, ZIGP=3, WP=2, ZIWP=3) 
 
 errorpad <- quantile(0, probs=c(0.025, 0.5, 0.975, 1))
-names(errorpad)[4] <- "MAX"
+names(errorpad)[4] <- "MAX.OBS"
 errorpad[] <- NA
 errorpadding <- c(mean=errorpad[1], mean=errorpad[2], mean=errorpad[3], coeff.variation=errorpad[1], coeff.variation=errorpad[2], coeff.variation=errorpad[3])
 
@@ -152,7 +152,7 @@ if(likelihood==TRUE){
 oldtwo = oldone <- matrix(NA, ncol=n.params.inc.lambda, nrow=0)
 
 # true.model for model testing:
-strings <- run.model(model=true.model, data=data, alt.prior=alt.prior, call.jags=FALSE, monitor.lambda=likelihood) # Only using lambda for IP model - run.model corrects for this
+strings <- run.model(model=true.model, data=data, alt.prior=alt.prior, call.jags=FALSE, monitor.lambda=likelihood, monitor.deviance=likelihood) # Only using lambda for IP model - run.model corrects for this
 modelstring <- strings[[1]]
 datastring <- strings[[2]]
 new.inits <- strings[[3]]
@@ -180,19 +180,19 @@ suppressWarnings({success <- try({
 time.taken <- timestring(start.time, Sys.time(), units='s', show.units=FALSE)
 if(class(success)=="try-error" | success[1]=="Error"){
 	cat("There was an error during the simulation\n")
-	error.code <- 5
+	errorcode <- 5
 	
 	if(class(success)!="try-error"){
 		if(success[2] == "The simulation was aborted due to crashes"){
 			cat("\nSimulation aborted due to crashes\n\n")
-			error.code <- 1
+			errorcode <- 1
 		}
 	}
 	
 	if(raw.output==TRUE){
 		return(list(mcmc=matrix(NA, ncol=n.params.inc.lambda+likelihood, nrow=1, dimnames=list(NA, params.names)), end.state=NA, samples=NA, samples.to.conv=NA, summary=NA, psrf=NA, autocorr=NA, trace=NA, density=NA, time.taken=time.taken))
 	}else{
-		return(c(converged=NA, error.code=error.code, samples=NA, samples.to.conv=NA, errorpadding, time.taken=time.taken))
+		return(c(converged=NA, error.code=errorcode, samples=NA, samples.to.conv=NA, errorpadding, time.taken=time.taken))
 	}
 }else{
 	if(any(names(output)=="pilot.mcmc")){
@@ -462,13 +462,16 @@ if(class(mpsrf)=="character") mpsrf <- NA
 results <- c(results, mpsrf=mpsrf)
 
 if(likelihood==TRUE){
+	# Old likelihoods calculated manually:
+	if(TRUE){
+		
 	suppressWarnings(success <- try({
 	if(zero.inflation==FALSE){
 		l.zi <- NA
 	}else{
 		l.zi <- zi
 	}
-		
+
 	if(model=="WP" | model=="GP"){
 		# likeadjust has to be 1 for (ZI)WP model
 		likeli <- likelihood(model=model, data=likedata, shape=shape, scale=scale*likeadjust, zi=l.zi, silent=paste("noziwarn", silent.jags, sep=""), log=TRUE, raw.output=TRUE)  # Leave iterations as default (1000)
@@ -491,26 +494,37 @@ if(likelihood==TRUE){
 	if(class(success)=="try-error"){
 		cat("An error occured while computing the likelihood\n")
 		likeli <- list(NA, NA)
+	}else{
+		if(silent.jags) cat("Finished calculating the likelihood\n")
 	}
+	
+	}else{
+		# New likelihoods based on deviance:
+		likeli <- as.numeric(combine.mcmc(output$mcmc)[,"deviance"])/-2
+		
+	}
+	
 	#print(sum(is.na(likeli[[1]])))
 	#assign('like', likeli, pos=.GlobalEnv)
 	if(any(is.na(likeli[[1]]))){
-		likeli.an <- c(l.95=NA, median=NA, u.95=NA, MAX=NA)
+		likeli.an <- c(l.95=NA, median=NA, u.95=NA, MAX.OBS=NA)
 	}else{
 		hpd <- HPDinterval(as.mcmc(likeli[[1]]))
-		likeli.an <- c(l.95=hpd[1], median=median(likeli[[1]]), u.95=hpd[2], MAX=max(likeli[[1]]))
+		likeli.an <- c(l.95=hpd[1], median=median(likeli[[1]]), u.95=hpd[2], MAX.OBS=max(likeli[[1]]))
 	}
 	results <- c(results, likelihood=likeli.an[1], likelihood=likeli.an[2], likelihood=likeli.an[3], likelihood=likeli.an[4])
 }
 
 if(unavailablelike==TRUE){
 	likeli.an <- quantile(NA, probs=c(0.025, 0.5, 0.975, 1), na.rm=TRUE)
-	names(likeli.an)[4] <- "MAX"
+	names(likeli.an)[4] <- "MAX.OBS"
 	results <- c(results, likelihood=likeli.an[1], likelihood=likeli.an[2], likelihood=likeli.an[3], likelihood=likeli.an[4])
 }
 
 if(raw.output==TRUE & (likelihood==TRUE | unavailablelike==TRUE)){
-
+	
+	# No longer need to append likelihoods to each chain - deviance is there already:
+	#if(FALSE){
 	success <- try({
 	
 	one.backup <- one
@@ -546,8 +560,14 @@ if(raw.output==TRUE & (likelihood==TRUE | unavailablelike==TRUE)){
 		one <- one.backup
 		two <- two.backup
 	}
+	#}
 	
 	mcmc <- mcmc.list(as.mcmc(one), as.mcmc(two))
+
+#	mcmc[[1]][,"deviance"] <- mcmc[[1]][,"deviance"]/-2
+#	mcmc[[2]][,"deviance"] <- mcmc[[2]][,"deviance"]/-2
+	
+#	varnames(mcmc)[nvar(mcmc)] <- "likelihood"
 	
 	if(converged==FALSE){
 		cat("Returning UNCONVERGED results\n")

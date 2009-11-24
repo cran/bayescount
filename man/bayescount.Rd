@@ -38,17 +38,17 @@ bayescount(name = NA, data = NA, setnames = NA,
 The results files consist of a table (or matrix) with the following results for each dataset:
 \item{name}{the name of the dataset.  This is a dimnames attribute for matrices.}
 \item{converged}{a logical flag indicating a PSRF of below the target indicating successful convergence (1), or the opposite (0).  Datasets where the model initially converged but the subsequent final chains had a PSRF of more than the target are classified as 'converged', but a warning message is printed in the function and the datasets will have an error code of 4.}
-\item{error.code}{a numeric code indicating the exit status of the simulation.  0 indicates no errors encountered, 1 indicates a repeatedly crashing model, 2 indicates a failure to converge within the specified time limit, 3 indicates a datset with no observations that was removed from analysis, 4 indicates a model that initially converged but the subsequent final chains had a PSRF of more than the target, and 5 indicates an unknown error in the function not related to the model (i.e. a bug in the runjags/bayescount code...).}
+\item{error.code}{a numeric code indicating the exit status of the simulation.  0 indicates no errors encountered, 1 indicates a repeatedly crashing model, 2 indicates a failure to converge within the specified time limit, 3 indicates a dataset with no observations that was removed from analysis, 4 indicates a model that initially converged but the subsequent final chains had a PSRF of more than the target, and 5 indicates an unknown error in the function not related to the model (i.e. a bug in the runjags/bayescount code...).}
 \item{samples}{the number of sampled iterations calculated by \code{\link[coda]{raftery.diag}} to reduce the MC error to the specified level.}
 \item{samples.to.conv}{the number of sampled iterations discarded as a result of slow convergence (will be 0 if the pilot chain converged).}
 \item{parameter estimates}{the lower 95\% credible interval, median estimate and upper 95\% credible interval for the mean, coefficient of variation, zero-inflation, log mean, log variance, shape parameter, and scale parameter as appropriate to the model.}
 \item{multivariate.psrf}{the multivariate PSRF of the final mcmc chains.  If this couldn't be calculated, NA.}
-\item{likelihood estimates}{the lower 95\% credible interval, median estimate and upper 95\% credible interval for the mean, coefficient of variation, zero-inflation, log mean, log variance, shape parameter, and scale parameter as appropriate to the model.}
+\item{likelihood estimates}{the lower 95\% credible interval, median estimate, upper 95\% credible interval and maximum observed value (this is NOT equivalent to the maximum likelihood) of the likelihood for the model.  For the compound distributions these likelihoods are integrated for all possible values of the Poisson means (calculated using \code{\link{likelihood}}), and may well be different to the deviance calculated using JAGS.}
 \item{time.taken}{the total time in seconds taken to run the simulation (not including calculating the likelihood and other summary statistics).}
 }
 
 \seealso{
-   \code{\link[runjags]{autorun.jags}}, \code{\link{bayescount.single}}, \code{\link{likelihood}}
+   \code{\link[runjags]{autorun.jags}}, \code{\link{bayescount.single}}, \code{\link{likelihood}}, and \code{\link{fec.power}} for power analysis methods for FEC.
 }
 
 \author{Matthew Denwood \email{m.denwood@vet.gla.ac.uk} funded as part of the DEFRA VTRI project 0101.}

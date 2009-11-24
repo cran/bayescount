@@ -1,8 +1,14 @@
-citEntry("Manual{,
-    title = {bayescount: Bayesian analysis of count distributions using MCMC},
-    author = {Denwood, M.J.}
-    year = {2009},
-    note = {R package version 0.9.0},
-    url = {http://cran.r-project.org/web/packages/bayescount/},
-    }", "Denwood, M.J. (2009).  bayescount: Bayesian analysis of count distributions using MCMC.  R package version 0.9.0.  Available from http://cran.r-project.org/web/packages/bayescount/")
+citHeader("To cite package 'bayescount' in publications use:")
 
+desc <- packageDescription("bayescount")
+year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", desc$Date)
+vers <- paste("R package version", desc$Version)
+
+citEntry(entry="Manual",
+         title = "bayescount: Analysis of faecal egg count distributions, faecal egg count reduction tests, and prospective power calculations using computationally intensive statistical techniques",
+         author = personList(as.person("M. J. Denwood")),
+         year = year,
+         note = vers,
+url = "http://cran.r-project.org/web/packages/bayescount/",
+         textVersion =
+         paste("M. J. Denwood (", year, "). bayescount: Analysis of faecal egg count distributions, faecal egg count reduction tests, and prospective power calculations using computationally intensive statistical techniques. ", vers, ".", sep=""))

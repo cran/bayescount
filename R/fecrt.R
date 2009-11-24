@@ -1,14 +1,15 @@
-fecrt <- function(name = NA, pre.data = NA, post.data = NA, data = list(pre=pre.data, post=post.data), animal.names = FALSE, efficacy=95, restrict.efficacy = TRUE, zero.inflation = FALSE, divide.data = 1, record.chains = FALSE, write.file = FALSE, bootstrap.iters=10000, plot.graph = TRUE, skip.mcmc = FALSE, individual.analysis=TRUE, ...){
+fecrt <- function(name = NA, pre.data = NA, post.data = NA, data = list(pre=pre.data, post=post.data), animal.names = FALSE, efficacy=95, confidence=95, restrict.efficacy = TRUE, control.animals = FALSE, paired.model = FALSE, zero.inflation = FALSE, divide.data = 1, record.chains = FALSE, write.file = FALSE, bootstrap.iters=10000, plot.graph = TRUE, skip.mcmc = FALSE, ...){
 
 runname <- name
 
-if(!individual.analysis & zero.inflation){
-	warning("Individual analysis must be used for the zero inflated model.  individual.analysis has been set to TRUE")
-	individual.analysis <- TRUE
-}
-speed <- !individual.analysis
+# Individual analysis is removed for now, unless I add a distribution of efficacy for the paired model later.
+# individual.analysis=paired.model, 
+#if(!paired.model & individual.analysis) stop("Individual analysis is only available using the paired model")
 
-div <- divide.data  # Need both to prevent list data being divided twice
+lci <- 0+((1-(confidence/100))/2)
+uci <- 1-((1-(confidence/100))/2)
+
+div <- divide.data 
 
 if(!require(runjags)){
 	stop("The required library 'runjags' is not installed")
@@ -53,102 +54,41 @@ if(testwritable=="Directory not writable"){
 
 if(class(data)=="function") stop("The class of the object supplied for data is a function")
 
-if(class(data)=="list"){
-	if(all(is.na(data[[1]])) & all(is.na(data[[2]]))){
-		data <- NA
-	}else{
-		if(all(is.na(data[[1]])) | all(is.na(data[[2]]))) stop("Both pre and post treatment counts must be supplied")
-		pre.data <- data[[1]]
-		post.data <- data[[2]]
+if(class(data)!="character" & class(data)!="matrix"){
+		
+	if(class(data)!="list") stop("Data supplied in an incorrect format")
+	if(length(data)!=2) stop("Data supplied in an incorrect format - the list must be of length two")
+	
+	pre.data <- data[[1]]
+	post.data <- data[[2]]
+	
+	if(class(pre.data)=="integer") pre.data <- as.numeric(pre.data)
+	if(class(post.data)=="integer") post.data <- as.numeric(post.data)
+	
+	if(class(pre.data)!=class(post.data)) stop("The pre and post treatment data must be provided in the same format")
+	
+	if(class(pre.data)=="array" & paired.model==FALSE) stop("The paired model is required when using repeat samples within animal.  Either specify the data as a matrix, or set paired.model=TRUE")
 
-		f <- function(data){
-if(class(data)=="list"){
-	
-	if(suppressWarnings(class(data$totals) != "NULL" & class(data$repeats) != "NULL")){
-		# data is a list of counts and repeats
-		totals <- data$totals
-		repeats <- data$repeats
-		
-		if(length(totals)!=length(repeats)) stop("The number of repeats does not match the length of totals")
-		
-		if(any(is.na(totals)) | any(is.na(repeats))) stop("Missing data is not allowed in repeats or totals")
-		
-		totals <- totals / div
-		
-		data <- matrix(NA, ncol=max(repeats), nrow=length(totals))
-		
-		for(i in 1:length(totals)){
-				
-			if(round(totals[i])!=totals[i]) stop("All totals must be an integer")
-			if(round(repeats[i])!=repeats[i] | repeats[i] < 1) stop("All repeats must be an integer greater than 0")
-			
-			if(repeats[i] > 1){
-
-				done <- FALSE
-	
-				while(!done){
-					data[i,1:repeats[i]] <- rpois(repeats[i], totals[i]/repeats[i])
-					if(sum(data[i,],na.rm=TRUE)==totals[i] & all(na.omit(data[i,]) >= 0)) done <- TRUE
-		
-				}
-			}else{
-				data[i,1] <- totals[i]
-			}
-		}
-		
-	}else{
-
-		delist <- function(list){
-		
-		N <- length(list)
-		R <- numeric(length=N)
-	
-		for(i in 1:N){
-			R[i] <- length(na.omit(as.numeric(list[[i]])))
-		
-		}
-	
-		if(sum(R>0,na.rm=TRUE)==0) stop("No real values in the data")
-	
-		data <- matrix(NA, ncol=max(R), nrow=N)
-	
-		for(i in 1:N){
-			data[i,(min(R[i], 1):R[i])] <- na.omit(as.numeric(list[[i]]))
-		}
-	
-		data <- data[apply(!is.na(data), 1, sum)>0,]
-
-		if(sum(R>0)==1) return(matrix(data, nrow=1)) else return(data)
-		}
-	
-		data <- delist(data)	
+	if(class(pre.data)=="matrix"){
+		dims <- dim(pre.data)
+		pre.data <- array(t(pre.data), dim=c(1,dims[2],dims[1]))
+		dims <- dim(post.data)
+		post.data <- array(t(post.data), dim=c(1,dims[2],dims[1]))
 	}
-}
-return(data)
-}
-		pre.data <- f(pre.data)
-		post.data <- f(post.data)
-		
-		div <- 1
-		
-		data <- list(pre.counts=as.matrix(pre.data), post.counts=as.matrix(post.data))
-	}
-}
-
-if(class(data)=="numeric" | class(data)=="integer") stop("Data cannot be provided as a single vector of data")
-
-if(class(data)=="array"){
-	if(dim(data)[3] == 1){
-		data <- matrix(data, ncol=(dim(data)[2]))
-	}else{
-		if(dim(data)[3] !=2){
-			stop("Data cannot be provided as an array of 3rd dimension length greater than 2")
-		}else{
-			data <- list(pre.counts=as.matrix(data[,,1]), post.counts=as.matrix(data[,,2]))
-		}
-	}
-}
 	
+	if(class(pre.data)=="numeric" | class(pre.data)=="integer"){
+		pre.data <- array(pre.data, dim=c(1,1,length(pre.data)))
+		post.data <- array(post.data, dim=c(1,1,length(post.data)))
+	}
+	
+	if(dim(pre.data)[3] != dim(post.data)[3]) stop("Unequal numbers of animals pre- and post-treatment")
+	
+	data <- list(pre.counts=pre.data, post.counts=post.data)
+	
+}
+
+
+
 cat("\n--- FECRT: Analyse faecal egg cout reduction test data using a Bayesian distributional simulation model ---\n\n")
 cat("*PLEASE NOTE:  THIS SOFTWARE IS INTENDED FOR EDUCATIONAL PURPOSES ONLY AND SHOULD NOT BE RELIED UPON FOR REAL WORLD APPLICATIONS*\n")
 cat("*ANALYSING DATA USING MCMC SAMPLING CAN PRODUCE MISLEADING RESULTS IF USED INAPPROPRIATELY*\n\n")
@@ -195,7 +135,7 @@ while(dataok==FALSE){
 	exists <- try(file.exists(datain), silent=TRUE)
 	if((class(exists)=="try-error")==FALSE){
 		if(exists==TRUE){
-		data <- try(read.csv(datain, header=FALSE), silent=TRUE)
+		data <- try(as.matrix(read.csv(datain, header=FALSE), silent=TRUE))
 		if((class(data)=="try-error")==FALSE){
 			valid.data <- try(length(data[,1]) > 1, silent=TRUE)
 			if((class(valid.data)=="try-error")==TRUE){
@@ -220,44 +160,37 @@ while(dataok==FALSE){
 
 }
 
-if(class(data)=="matrix") if(length(data[1,]) !=(suppressWarnings(sum(2, as.numeric(animal.names[1]), na.rm=TRUE)))) stop("If data is provided as a matrix, there must be either 2 columns if animal.names is FALSE, or 3 columns if animal.names is TRUE")
-
-
-
-if(class(data)!="matrix" & animal.names[1]==TRUE){
-	cat("Warning:  'animal.names' cannot be TRUE if the data is not provided as a matrix.  'animal.names' will be set to FALSE\n")
+if(class(data)!="matrix" & identical(animal.names,TRUE)){
+	warning("'animal.names' cannot be TRUE if the data is not provided as a matrix.  'animal.names' will be set to FALSE")
 	animal.names <- FALSE
 }
 
-setnames <- animal.names
+if(class(data)=="matrix"){
+	
+	if(ncol(data) < (2+identical(animal.names,TRUE)) | ncol(data) > (3+identical(animal.names,TRUE))) stop("If provided as a matrix, the data must have either 2, 3 or 4 columns (if animal.names==TRUE)")
+	
+	if(identical(animal.names,TRUE)){
+		animal.names <- data[,1]
+		data <- data[,2:ncol(data)]
+	}
+	if(ncol(data)==3) control.animals <- data[,3]
 
-namesdone <- FALSE
+	pre.data <- array(data[,1], dim=c(1,1,length(data[,1])))
+	post.data <- array(data[,2], dim=c(1,1,length(data[,2])))
 
-if(setnames==TRUE){
-	setnames <- data[,1]
-	data <- matrix(data[2:length(data[1,]),], ncol=2)
-	namesdone <- TRUE
+	data <- list(pre.counts=pre.data, post.counts=post.data)
 }
-
-if(class(data) == "matrix") data <- list(pre.counts=as.matrix(data[,1]), post.counts=as.matrix(data[,2]))
-
-if(length(data$pre.counts[,1])!=length(data$post.counts[,1])) stop("There were an unequal number of animals in the pre and post treatment data")
 
 if(class(data$pre.counts) == "NULL" | class(data$post.counts) == "NULL") stop("An error occured while transforming the data to an appropriate format")
 
-
-names <- NA
-
-if(namesdone==FALSE){
-	if(length(setnames) != 1 | setnames[1] != FALSE){
-		if(length(setnames) != length(data$pre.counts[,1])) stop("The length of the character vector animal.names does not match the lenth of the data provided")
-		names <- setnames
-	}else{
-		names <- paste("Animal ", 1:length(data$pre.counts[,1]), sep="")
-	}
+if(!identical(animal.names, FALSE)){
+	if(length(animal.names) != length(data$pre.counts[1,1,])) stop("The length of the character vector animal.names does not match the length of the data provided")
+	names <- animal.names
+}else{
+	names <- paste("Animal ", 1:length(data$pre.counts[1,1,]), sep="")
 }
 
-N <- length(data$pre.counts)
+N <- length(data$pre.counts[1,1,])
 
 if(N > 100 & !skip.mcmc){
 	if(arguments$interactive){
@@ -285,72 +218,171 @@ if(N > 100 & !skip.mcmc){
 	}
 }
 
-cat("Assessing the faecal egg count reduction for ", N, " animals.  This will take some time...\n", sep="")
-
-
 pre <- data$pre.counts / div
 post <- data$post.counts / div
 
+if(identical(control.animals, FALSE)){
+	control.animals <- replicate(N, FALSE)
+}
 
-#if(sum(pre+post,na.rm=TRUE)==0) stop("The data contains all 0 counts")
+control.animals <- as.integer(control.animals)
 
-model <- paste("model{
-	
+if(length(control.animals)!=N) stop("The length of the control/treatment vector does not match the number of animals")
+
+if(length(pre)!=length(post)) warning("Pre and post treatment data are of different lengths")
+
+if(sum(control.animals)==0) cat("Assessing the faecal egg count reduction for ", N, " animals.  This will take some time...\n", sep="") else cat("Assessing the faecal egg count reduction for ", N, " animals (including ", sum(control.animals==1), " control animals).  This will take some time...\n", sep="")
+
+
+#### Not using unfixed efficacy currently but will leave it in the code for future work.  It currently won't work with Txcont stuff though, so unless this is removed fix.efficy=FALSE will break it:
+fix.efficacy <- TRUE
+
+#### Not using controls as possibility to boost inference about pre.mean but required if all treatment animals:
+usecontrol <- sum(control.animals)>0
+
+pairedmodel <- paste("model{
+
 	for(row in 1:N){
-		for(repeat in 1:Pre.R[N]){
-			Pre[row,repeat] ~ dpois(xpre.lambda[row])
+	for(sample in 1:Pre.Samples){
+		for(repeat in 1:Pre.Replicates){
+			Pre[repeat,sample,row] ~ dpois(xpre.lambda[sample,row])
 		}
-		for(repeat in 1:Post.R[N]){
-			Post[row,repeat] ~ dpois(xpost.lambda[row])
+		xpre.lambda[sample,row] <- ", if(zero.inflation) "probpos[row] * ", "ind.pre.mean[row] * pre.gamma[sample,row]
+		pre.gamma[sample,row] ~ dgamma(pre.disp, pre.disp)T(10^-200,)
+	}
+	for(sample in 1:Post.Samples){
+		for(repeat in 1:Post.Replicates){
+			Post[repeat,sample,row] ~ dpois(xpost.lambda[sample,row])
 		}
-		
-		xpre.lambda[row] <- ", if(zero.inflation) "probpos[row] * ", "pre.mean * pre.gamma[row]
-		xpost.lambda[row] <- ", if(zero.inflation) "probpos[row] * ", "post.mean * post.gamma[row]
-		
-		ind.delta[row] <- xpost.lambda[row] / xpre.lambda[row]
-		
-		pre.gamma[row] ~ dgamma(pre.disp, pre.disp)
-		post.gamma[row] ~ dgamma(post.disp, post.disp)
-		
+		xpost.lambda[sample,row] <- ", if(zero.inflation) "probpos[row] * ", "ind.post.mean[row] * post.gamma[sample,row]
+		post.gamma[sample,row] ~ dgamma(post.disp[Txcont[row]], post.disp[Txcont[row]])T(10^-200,)
+	}	
+
+		ind.pre.mean[row] <- pre.mean * animal.gamma[row]
+
+		animal.gamma[row] ~ dgamma(animal.disp, animal.disp)T(10^-200,)
+
+		ind.post.mean[row] <- ind.pre.mean[row] * ind.delta.mean[row]
+
+		", if(zero.inflation) "probpos[row] ~ dbern(prob)", "
+
+		", if(fix.efficacy) "ind.delta.mean[row] <- delta.m[Txcont[row]] " else "ind.delta.mean[row] ~ dbeta(alpha, beta)", "
+
+	}
+
+	", if(!fix.efficacy) "
+	alpha ~ dunif(0,1000)
+	beta <- (alpha - (delta.mean*alpha)) / delta.mean
+	", "
+
+	# these represent within animal variability so can change with tx:
+	pre.disp <- 1 / ia
+	post.disp[1] <- pre.disp * delta.disp
+	post.disp[2] <- pre.disp
+	animal.disp <- 1 / iaa
+
+	# Priors
+	pre.mean ~ dunif(0.001, 1000)
+	", if(zero.inflation) "prob ~ dunif(0,1)", "
+
+	ia <- exp(logia)
+	logia ~ dunif(-9.21,4.6)
+	iaa <- exp(logiaa)
+	logiaa ~ dunif(-9.21,4.6)
+
+	ddispl <- ", {if(TRUE) exp(-9.21) else 0.02}, " / pre.disp;
+	ddispu <- ", {if(TRUE) exp(4.6) else 100}, " / pre.disp;
+
+	", if(usecontrol) "delta.mean <- delta.m[1] / delta.m[2]" else "delta.mean <- delta.m[1]", "
+
+	delta.m[1] ~ ", {if(restrict.efficacy) "dbeta(1,1)" else "dunif(0, 10)"}, "
+	delta.m[2] <- exp(ldelta.m)
+	ldelta.m ~ dunif(-4,4)
+
+	delta.disp ~ dlnorm(0, 0.01)T(0.001,1000)
+
+}", sep="")
+
+	
+
+singlemodel <- paste("model{
+
+for(row in 1:N){
+for(sample in 1:Pre.Samples){
+	for(repeat in 1:Pre.Replicates){
+		Pre[repeat,sample,row] ~ dpois(xpre.lambda[sample,row])
+	}
+	xpre.lambda[sample,row] <- ", if(zero.inflation) "probpos[row] * ", "pre.mean * pre.gamma[sample,row]
+	pre.gamma[sample,row] ~ dgamma(pre.disp, pre.disp)T(10^-200,)
+}
+for(sample in 1:Post.Samples){
+	for(repeat in 1:Post.Replicates){
+		Post[repeat,sample,row] ~ dpois(xpost.lambda[sample,row])
+	}
+	xpost.lambda[sample,row] <- ", if(zero.inflation) "probpos[row] * ", "post.mean[Txcont[row]] * post.gamma[sample,row]
+	post.gamma[sample,row] ~ dgamma(post.disp[Txcont[row]], post.disp[Txcont[row]])T(10^-200,)
+}	
+
 ", if(zero.inflation) "probpos[row] ~ dbern(prob)","
 	}
-	
-	pre.disp <- 1 / ia
-	
-	post.mean <- pre.mean * delta.mean
-	post.disp <- pre.disp * delta.disp
 
-	
+	pre.disp <- 1 / ia
+
+	post.mean[1] <- pre.mean * delta.m[1]
+	post.mean[2] <- ", if(usecontrol) "pre.mean * delta.m[2]" else "pre.mean", "
+	post.disp[1] <- pre.disp * delta.disp
+	post.disp[2] <- pre.disp
+
+	", if(usecontrol) "delta.mean <- delta.m[1] / delta.m[2]" else "delta.mean <- delta.m[1]", "
+
 	# Priors
-	pre.mean ~ dunif(0.1, 1000)
+	pre.mean ~ dunif(0.001, 1000)
 ", if(zero.inflation) "prob ~ dunif(0,1)","
 	ia <- exp(logia)
-	logia ~ ", {if(FALSE) "dunif(-9.21,5)#4.6" else "dunif(-4,4);"}, "
-	
-	ddispl <- ", {if(FALSE) exp(-9.21) else 0.02}, " / pre.disp;
-	ddispu <- ", {if(FALSE) exp(5) else 100}, " / pre.disp;
-	
-	delta.mean ~ ", {if(restrict.efficacy) "dbeta(1,1)" else "dunif(0, 10)"}, "
-	delta.disp ~ dlnorm(0, 0.1)T(ddispl,ddispu)
-	
+	logia ~ dunif(-9.21,4.6)#4.6
+
+	delta.m[1] ~ ", {if(restrict.efficacy) "dbeta(1,1)" else "dunif(0, 10)"}, "
+	delta.m[2] <- exp(ldelta.m)
+	ldelta.m ~ dunif(-4,4)
+	delta.disp ~ dlnorm(0, 0.01)T(0.001, 1000)
+
 	}", sep="")
 
 
-probposinit <- as.numeric(pmax(pre,post,na.rm=TRUE) > 0)
+
+probposinit <- as.integer(apply(pre+post, 3, sum) < 0)
 probinit <- max(sum(probposinit) / length(probposinit), 0.1)
 
-inits1 <- dump.format(list(probpos=probposinit, pre.mean=max(mean(pre,na.rm=TRUE)*2, 1), delta.mean=0.01, logia=log(0.1), delta.disp=2, pre.gamma=replicate(length(pre), 1), post.gamma=replicate(length(pre), 1), prob=probinit))
+preg <- matrix(1, ncol=N, nrow=dim(pre)[2])
+postg <- matrix(1, ncol=N, nrow=dim(post)[2])
 
+datastring <- dump.format(list(Pre=pre, Post=post, N=N, Pre.Samples = dim(pre)[2], Pre.Replicates = dim(pre)[1], Post.Samples = dim(post)[2], Post.Replicates = dim(post)[2], Txcont=control.animals+1))
 
-inits2 <- dump.format(list(probpos=replicate(length(pre), 1), pre.mean=max(mean(pre,na.rm=TRUE)*0.5, 1), delta.mean=0.99, logia=log(10), delta.disp=0.5, pre.gamma=replicate(length(pre), 1), post.gamma=replicate(length(pre), 1), prob=1))
+if(!paired.model){
 
-datastring <- dump.format(list(Pre=as.matrix(pre), Post=as.matrix(post), N=length(pre), Pre.R=replicate(length(pre),1), Post.R=replicate(length(post),1)))
+	model <- singlemodel
+	
+	inits1 <- dump.format(list(probpos=probposinit, pre.mean=max(mean(pre,na.rm=TRUE)*2, 1), delta.m=c(0.01,NA), ldelta.m=0, logia=log(0.1), delta.disp=2, pre.gamma=preg, post.gamma=postg, prob=probinit))
 
+	inits2 <- dump.format(list(probpos=replicate(length(pre), 1), pre.mean=max(mean(pre,na.rm=TRUE)*0.5, 1), delta.m=c(0.99,NA), ldelta.m=0, logia=log(10), delta.disp=0.5, pre.gamma=preg, post.gamma=postg, prob=1))
+	
+		
+}else{
+
+	model <- pairedmodel
+		
+	inits1 <- dump.format(list(probpos=probposinit, pre.mean=max(mean(pre,na.rm=TRUE)*2, 1), animal.gamma=replicate(N,1), delta.m=c(0.01,NA), ldelta.m=0, logia=log(0.1), logiaa=log(0.1), delta.disp=2, pre.gamma=preg, post.gamma=postg, prob=probinit))
+
+	inits2 <- dump.format(list(probpos=replicate(length(pre), 1), pre.mean=max(mean(pre,na.rm=TRUE)*0.5, 1), animal.gamma=replicate(N,1), delta.m=c(0.99,NA), ldelta.m=0, logia=log(10), logiaa=log(10), delta.disp=0.5, pre.gamma=preg, post.gamma=postg, prob=1))
+	
+}
 
 monitor=c("pre.mean", "delta.mean", "delta.disp")
-if(zero.inflation) monitor <- c(monitor, "prob", "probpos")
-if(!speed) monitor <- c(monitor, "ind.delta")#, "pre.disp", "xpre.lambda", "xpost.lambda")
+if(zero.inflation) monitor <- c(monitor, "prob")
 
+# Individual analysis has been removed for now; may add it back in later if I use varying efficacy
+#if(individual.analysis) monitor <- c(monitor, "ind.delta.mean") #individual.analysis can only happen for paired model
+#if(zero.inflation & individual.analysis) monitor <- c(monitor, "probpos")
 
 if(!skip.mcmc){
 	
@@ -368,8 +400,6 @@ if(!skip.mcmc){
 	results <- do.call(autorun.jags, arguments, quote=FALSE)
 	
 	#results <- autorun.jags(data=datastring, model=model, monitor=monitor, n.chains=2, inits=c(inits1, inits2), silent.jags = list(silent.jags=silent.jags, killautocorr=TRUE), plots = FALSE, thin.sample = TRUE, interactive=interactive, max.time=max.time, ...)
-
-
 
 if(results[1]=="Error"){
 	#print(results)
@@ -389,17 +419,28 @@ if(any(names(results)=="pilot.mcmc")){
 	results <- list(mcmc="MCMC analysis not performed")
 }
 
-pre <- pre.data
-post <- post.data
-#return(results)
 
-blankquant <- quantile(0, probs=c(0.025, 0.5, 0.975))
-	
-if(any(class(pre)==c("array", "matrix", "list")) | any(class(post)==c("array", "matrix", "list"))){
-	warning("Bootstrap and WAAVP calculations are not available for repeated pre and/or post treatment egg counts")
+blankquant <- quantile(0, probs=c(lci, 0.5, uci))
+
+# No bootstrapping or WAAVP for paired model type data
+
+if(any(c(dim(post)[1:2], dim(pre)[1:2])>1)){
+	cat("Bootstrap and WAAVP calculations are not available for repeated pre and/or post treatment egg counts\n")
 	boot.reductions = bootquant = method.boot = waavpquant = method.waavp <- NA
 }else{
-	if(length(pre)!=length(post)) warning("Pre and post treatment data are of different lengths")
+	
+	pre <- apply(pre.data, 3, mean) # Should only be 1 datapoint
+	post <- apply(post.data, 3, mean) # Should only be 1 datapoint
+	# Just to check:
+	pre2 <- pre.data[1,1,]
+	post2 <- post.data[1,1,]
+	if(any(pre!=pre2) | any(post!=post2)) stop("An unexpected error occured while manipulating the data for the bootstrap/WAAVP methods")
+	
+	if(sum(control.animals)>0){
+		warning("Control animals are ignored using the bootstrap and WAAVP calculations")
+		pre <- pre[!control.animals]
+		post <- post[!control.animals]
+	}
 	
 	cat("Calculating the Bootstrap and WAAVP method analysis...\n")
 	# Bootstrap:
@@ -412,11 +453,11 @@ if(any(class(pre)==c("array", "matrix", "list")) | any(class(post)==c("array", "
 	boot.reductions[boot.reductions==-Inf] <- NA
 	bootprob <- sum(boot.reductions < efficacy, na.rm=TRUE) / sum(!is.na(boot.reductions)) * 100
 	
-	bootquant <- quantile(boot.reductions, probs=c(0.025, 0.5, 0.975), na.rm=TRUE)
+	bootquant <- quantile(boot.reductions, probs=c(lci, 0.5, uci), na.rm=TRUE)
 	if(is.na(bootprob)){
 		method.boot <- "Returned error"
 	}else{
-		method.boot <- if(bootprob >= 97.5) "Confirmed resistant" else if(bootprob >= 50) "Probable resistant" else if(bootprob >= 2.5) "Possible resistant" else "Confirmed susceptible"
+		method.boot <- if(bootprob >= (uci*100)) "Confirmed resistant" else if(bootprob >= 50) "Probable resistant" else if(bootprob >= (lci*100)) "Possible resistant" else "Confirmed susceptible"
 	}
 
 	# WAAVP:
@@ -442,7 +483,7 @@ if(any(class(pre)==c("array", "matrix", "list")) | any(class(post)==c("array", "
 	waavpquant[1] <- lower.ci
 	waavpquant[2] <- red
 	waavpquant[3] <- upper.ci
-
+	
 	if(any(is.na(c(red,efficacy,lower.ci)))){
 		method.waavp <- "Returned error"
 	}else{
@@ -452,6 +493,11 @@ if(any(class(pre)==c("array", "matrix", "list")) | any(class(post)==c("array", "
 		if(red < 95 & lower.ci < 90){
 			method.waavp <- "Confirmed resistant"
 		}
+	}
+	
+	if(confidence!=95){
+		waavpquant[] <- NA
+		method.waavp <- "Not available"
 	}
 }
 }
@@ -469,31 +515,8 @@ vars <- nvar(results$mcmc)
 
 n <- (vars-(length(monitor)-(1+zero.inflation)))/(1+zero.inflation)
 
-probpos = delta <- matrix(nrow=niter(results$mcmc)*2, ncol=n)
-
-if(!speed){
-for(i in 1:n){
-	
-	probpos[,i] <- if(zero.inflation) unlist(results$mcmc[,(i+4)]) else NA
-	delta[,i] <- (1-unlist(results$mcmc[,(i+(zero.inflation*n)+3+zero.inflation)]))*100	
-	
-}
-}
-
-ind.prob.inf <- apply(delta, 2, function(x) return(sum(x < efficacy) / length(x))) * 100
-
-ind.zi.probs <- (1-apply(probpos, 2, mean, na.rm=TRUE))*100
-
-indredquant <- matrix(ncol=3, nrow=length(pre), dimnames=list(names, names(blankquant)))
-indredquan <- if(!speed) HPDinterval(as.mcmc(delta)) else matrix(ncol=2,nrow=n)
-indredmedians <- if(!speed) apply(delta, 2, median) else replicate(n, NA)
-
-indredquant[,2] <- indredmedians
-indredquant[,1] <- indredquan[,1]
-indredquant[,3] <- indredquan[,2]
-
 medred <- median(reduction)
-ci <- HPDinterval(as.mcmc(reduction))
+ci <- HPDinterval(as.mcmc(reduction), prob=(0.01*confidence))
 l95red <- ci[1]
 u95red <- ci[2]
 mcmcquant <- blankquant
@@ -503,13 +526,13 @@ mcmcquant[2] <- medred
 
 meanquant <- blankquant
 meanquant[2] <- median(pre.mean*divide.data)
-ci <- HPDinterval(as.mcmc(pre.mean*divide.data))
+ci <- HPDinterval(as.mcmc(pre.mean*divide.data), prob=(0.01*confidence))
 meanquant[1] <- ci[1]
 meanquant[3] <- ci[2]
 
 ziquant <- blankquant
 ziquant[2] <- if(zero.inflation) median(zi) else NA
-ci <- if(zero.inflation) HPDinterval(as.mcmc(zi)) else c(NA,NA)
+ci <- if(zero.inflation) HPDinterval(as.mcmc(zi), prob=(0.01*confidence)) else c(NA,NA)
 ziquant[1] <- ci[1]
 ziquant[3] <- ci[2]
 
@@ -520,14 +543,14 @@ ziquant[3] <- ci[2]
 
 dshapequant <- blankquant
 dshapequant[2] <- median(deltashape)
-ci <- HPDinterval(as.mcmc(deltashape))
+ci <- HPDinterval(as.mcmc(deltashape), prob=(0.01*confidence))
 dshapequant[1] <- ci[1]
 dshapequant[3] <- ci[2]
 
 
 mcmcprob <- sum(reduction < efficacy) / length(reduction) * 100
 
-method.mcmc <- if(mcmcprob >= 97.5) "Confirmed resistant" else if(mcmcprob >= 50) "Probable resistant" else if(mcmcprob >= 2.5) "Possible resistant" else "Confirmed susceptible"
+method.mcmc <- if(mcmcprob >= (uci*100)) "Confirmed resistant" else if(mcmcprob >= 50) "Probable resistant" else if(mcmcprob >= (lci*100)) "Possible resistant" else "Confirmed susceptible"
 
 #class <- (prob.res > 0.025) + (prob.res > 0.50) + (prob.res > 0.975) + 1
 #method3 <- switch(class, "1"="susceptible", "2"="possible", "3"="probable", "4"="resistant")
@@ -538,9 +561,10 @@ method.mcmc <- if(mcmcprob >= 97.5) "Confirmed resistant" else if(mcmcprob >= 50
 
 cat("Finished calculations\n")
 
-output <- list(results.mcmc=method.mcmc, quant.mcmc=mcmcquant, results.boot=method.boot, quant.boot=bootquant, results.waavp=method.waavp, quant.waavp = waavpquant, prob.mcmc=mcmcprob, prob.boot=bootprob, ziquant=ziquant, dshapequant=dshapequant, meanquant=meanquant, indredquant=indredquant, ind.prob.inf=ind.prob.inf, ind.zi.prob=ind.zi.probs, converged=converged, efficacy=efficacy, restrict.efficacy=restrict.efficacy, animal.names=names, name=name)
+output <- list(results.mcmc=method.mcmc, quant.mcmc=mcmcquant, results.boot=method.boot, quant.boot=bootquant, results.waavp=method.waavp, quant.waavp = waavpquant, prob.mcmc=mcmcprob, prob.boot=bootprob, ziquant=ziquant, dshapequant=dshapequant, meanquant=meanquant, confidence=confidence, converged=converged, efficacy=efficacy, restrict.efficacy=restrict.efficacy, animal.names=names, name=name)
 if(record.chains) output <- c(output, list(mcmc=results$mcmc))
 
+#browser()
 
 if(write.file){
 	cat("Writing results to file\n")
@@ -555,10 +579,13 @@ if(write.file){
 	cat("Results file written successfully\n")
 }else{
 	if(plot.graph){
-		if(!skip.mcmc) 	hist(reduction, col="red", breaks="fd", main="Posterior distribution for the true reduction", freq=FALSE, ylab="Probability", xlab="True FEC reduction (%)", xlim=c(0, 100))
-		abline(v=efficacy)
+		if(!skip.mcmc){
+			hist(reduction, col="red", breaks="fd", main="Posterior distribution for the true reduction", freq=FALSE, ylab="Probability", xlab="True FEC reduction (%)", xlim=c(0, 100))
+			abline(v=efficacy)
+		}
 	}
 }
+
 
 
 cat("\nAnalysis complete\n\n", sep="")

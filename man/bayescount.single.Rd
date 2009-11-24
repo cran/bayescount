@@ -24,7 +24,7 @@ bayescount.single(data = stop("Data must be specified"), model="ZILP",
    \item{...}{additional arguments to be passed directly to \code{\link[runjags]{autorun.jags}}.}
 }
 
-\value{Either a vector containing an indication of the error/crash/convergence status, the number of sampled updates used, and a lower/upper 95\% highest posterior density interval (see \code{\link[coda]{HPDinterval}}), and median estimate for each relevant parameter (optionally including the likelihood), or an MCMC object representing the estimates at each iteration for both chains (optionally including the likelihood).
+\value{Either a vector similar to that obtained from \code{\link{bayescount}} containing an indication of the error/crash/convergence status, the number of sampled updates used, and a lower/upper 95\% highest posterior density interval (see \code{\link[coda]{HPDinterval}}), and median estimate for each relevant parameter (optionally including the likelihood), or an MCMC object representing the estimates at each iteration for both chains (optionally including the likelihood).
 }
 
 \seealso{

@@ -69,8 +69,11 @@ maximise.likelihood <- function(data=stop("Data must be specified"), model=stop(
 	}
 
 	if(model=="ZIP"){
-		if(is.na(mean)) mean <- mean(data[data!=0])
-		if(is.na(zi)) zi <- sum(data==0)/length(data)*100
+		#if(is.na(mean)) mean <- mean(data[data!=0])
+		#if(is.na(zi)) zi <- sum(data==0)/length(data)*100
+		
+		if(is.na(mean)) mean <- mean(data)
+		if(is.na(zi)) zi <- 0
 		
 		if(silent==TRUE){
 			f2 <- function(pars=c(NA, NA)){
@@ -113,9 +116,14 @@ maximise.likelihood <- function(data=stop("Data must be specified"), model=stop(
 	}
 	
 	if(model=="ZIG" | model=="ZIGP"){
-		if(is.na(scale)) scale <- var(data[data!=0])/mean(data[data!=0])
-		if(is.na(shape)) shape <- mean(data[data!=0]) / scale
-		if(is.na(zi)) zi <- sum(data==0)/length(data)*100
+		
+		#if(is.na(scale)) scale <- var(data[data!=0])/mean(data[data!=0])
+		#if(is.na(shape)) shape <- mean(data[data!=0]) / scale
+		#if(is.na(zi)) zi <- sum(data==0)/length(data)*100
+		
+		if(is.na(scale)) scale <- var(data)/mean(data)
+		if(is.na(shape)) shape <- mean(data) / scale
+		if(is.na(zi)) zi <- 0
 		
 		if(silent==TRUE){
 			f4 <- function(pars=c(NA, NA, NA)){
@@ -203,9 +211,13 @@ maximise.likelihood <- function(data=stop("Data must be specified"), model=stop(
 	}
 	
 	if(model=="ZIL" | model=="ZILP"){
-		if(is.na(mean)) mean <- mean(data[data!=0])
-		if(is.na(variance)) variance <- var(data[data!=0])
-		if(is.na(zi)) zi <- sum(data==0)/length(data)*100
+		#if(is.na(mean)) mean <- mean(data[data!=0])
+		#if(is.na(variance)) variance <- var(data[data!=0])
+		#if(is.na(zi)) zi <- sum(data==0)/length(data)*100
+		
+		if(is.na(mean)) mean <- mean(data)
+		if(is.na(variance)) variance <- var(data)
+		if(is.na(zi)) zi <- 0
 		
 		if(silent==TRUE){
 			f8 <- function(pars=c(NA, NA, NA)){
@@ -229,5 +241,6 @@ maximise.likelihood <- function(data=stop("Data must be specified"), model=stop(
 		#if(guitest$R.GUI == "AQUA" & guitest$R.package.type == "mac.binary") cat("\n")
 		cat("\n\nFinished maximising the likelihood\n\n")
 	}
+	results <- c(results, log.likelihood=maxim$value)
 	return(results)
 }

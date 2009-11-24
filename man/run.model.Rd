@@ -7,13 +7,15 @@
 \usage{
 run.model(data=stop("No data supplied"), 
    model=stop("No model specified"), call.jags = TRUE, 
-   alt.prior=FALSE, monitor.lambda=FALSE, ...)}
+   alt.prior=FALSE, monitor.lambda=FALSE, 
+   monitor.deviance=FALSE, ...)}
 \arguments{
    \item{data}{an existing R vector containing the data (integer vector).  No default.}
    \item{model}{model to use.  Choices are "GP" (gamma Poisson = negative binomial), "ZIGP" (zero-inflated gamma Poisson = zero-inflated negative binomial), "LP" (lognormal Poisson), "ZILP" (zero-inflated lognormal Poisson), "WP" (Wiebull Poisson), "ZIWP" (zero-inflated Weibull Poisson), "SP" (simple Poisson), "ZISP" (zero-inflated simple Poisson) or "IP" (independant Poisson).  The simple Poisson model forces each count to have the same mean, wheras the independant Poisson process allows each count to have an unrelated mean (therefore a zero-inflated version is not possible).  Default "ZILP".}
    \item{call.jags}{should the function run the model using run.jags?  If not, the model specification, initial values and data in the correct format are returned so that the model can be run using run.jags with no modifications.  If TRUE, the model is run and the results are returned.}
    \item{alt.prior}{should the model run the [ZI] [WP|GP|LP] models using the standard or the alternative prior distribution for variance? (logical)  Can also be a character value of a user-specified prior distribution.  Default FALSE.  Where information concerning overdispersion in the data is sparse, the choice of prior distribution will have an affect on the posterior distribution for ALL parameters.  It is recommended to run a simulation using both types of prior when working with small datasets, to make sure results are consistent.}
    \item{monitor.lambda}{should the model or model specification monitor the mean of the Poisson process for each datapoint?  This is required to calculate the likelihood for the Independant Poisson model only, but may be useful for other purposes.  Default FALSE.}
+   \item{monitor.deviance}{option to monitor the deviance of the model (using the built-in 'deviance' monitor).  Default FALSE.}
    \item{...}{additional arguments to be passed directly to \code{\link[runjags]{autorun.jags}}.}
 }
 

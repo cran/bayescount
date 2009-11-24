@@ -383,11 +383,11 @@ animalsindata1 <- length(data[,1,1])
 
 names <- as.matrix(names)
 
-if(div==1){
+if(div==1 & length(data) > 1){
 	if(all(round(data/2)==(data/2)) | all(round(data/3)==(data/3))){
 		cat("Warning:  It appears as though the data provided have been multiplied by a constant\n")
 		if(test==TRUE){
-			if(ask(prompt="Exit program to change 'divide.data'?", type=logical)) stop("User exited the program")
+			if(ask(prompt="Exit program to change 'divide.data'?", type="logical")) stop("User exited the program")
 		}
 	}
 }
@@ -503,7 +503,7 @@ for(j in 1:length(all.models)){
 	resultscol <- resultscol + 1
 	
 	if(likelihood==TRUE){
-		headers <- c(headers, "likelihood.l.95", "likelihood.median", "likelihood.u.95", "likelihood.MAX")
+		headers <- c(headers, "likelihood.l.95", "likelihood.median", "likelihood.u.95", "likelihood.MAX.OBS")
 		resultscol <- resultscol + 4
 	}
 	
@@ -537,6 +537,7 @@ for(j in 1:length(all.models)){
 		}
 		if(omit.zeros==TRUE){
 			if(sum(setdata,na.rm=TRUE) < 1){
+				results[i,] <- zeros
 				output <- zeros
 				cat("Dataset '", names[i], "' contained all zeros and was therefore omitted\n", sep="")
 				done <- TRUE
@@ -603,7 +604,9 @@ for(j in 1:length(all.models)){
 			cat("ERROR: Expecting ", length(results[i,]), " values representing ", headers, " and got '", paste(names(output), collapse=", "), "'.\n", sep="")
 			warning(paste("Expecting ", length(results[i,]), " values representing ", headers, " and got '", paste(names(output), collapse=", "), "' for dataset ", names[i], " with the ", model, " model.", sep=""))
 		}else{
-			results[i,c("mean.l.95", "mean.median", "mean.u.95")] <- results[i,c("mean.l.95", "mean.median", "mean.u.95")] * scale.mean
+			if(omit.zeros==FALSE | sum(setdata,na.rm=TRUE) > 0){
+				results[i,c("mean.l.95", "mean.median", "mean.u.95")] <- results[i,c("mean.l.95", "mean.median", "mean.u.95")] * scale.mean
+			}
 		}
 		time.taken <- timestring(pre.time, post.time, show.units=TRUE)
 		total.time <- timestring(start.time, post.time, show.units=TRUE)

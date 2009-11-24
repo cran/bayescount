@@ -1,4 +1,4 @@
-This version of the function is still being developed, and as such will almost certainly contain numerous bugs.  If you find one or more (gasp!), or if you have any comments/criticisms/questions about the function, then please feel free to email me at m.denwood@vet.gla.ac.uk.  Thanks!
+If you find bugs in the functions provided (gasp!), or if you have any comments/criticisms/questions about the features, then please feel free to email me at m.denwood@vet.gla.ac.uk.  Thanks!
 
 
 OPEN ISSUES
@@ -11,12 +11,35 @@ None known.
 
 FEATURES TO BE IMPLEMENTED
 
-Implementation of a power analysis function for planning faecal sampling.
-
+None planned.
 
 
 
 VERSION HISTORY
+
+
+Version 0.9.9
+
+NEW FEATURES
+
+Help file concerning the likelihoods produced by bayescount and bayescount.single updated for clarity.
+
+power analysis
+
+fecrt function now takes confidence parameter - used for all CI intervals and boot/mcmc classifications (from probability)
+
+fecrt function and all gamma models in bayescount now use a T(10^-200,) on the gamma distributions to prevent crashes caused by a failure to calculate log densities associated with very small gamma values
+
+
+BUG FIXES
+
+Bug fixed which could cause a crash with bayescount when using the scale mean option with data consisting of all zeros
+
+Bug fixed which would prevent bayescount from running with data that could have been multiplied by a constant
+
+Citation information updated for compatibility with R version 2.10
+
+Numerous other minor bug fixes
 
 
 Version 0.9.0
