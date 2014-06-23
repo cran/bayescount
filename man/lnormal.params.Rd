@@ -17,8 +17,6 @@ lnormal.params(mean, sd, coeff.variation)}
    \code{\link{bayescount}}, \code{\link{normal.params}}
 }
 
-\author{Matthew Denwood \email{m.denwood@vet.gla.ac.uk} funded as part of the DEFRA VTRI project 0101.}
-
 \examples{
 
 \dontrun{

@@ -31,14 +31,14 @@ bayescount.single(data = stop("Data must be specified"), model="ZILP",
    \code{\link{bayescount}}, \code{\link{run.model}}, \code{\link{likelihood}}
 }
 
-\author{Matthew Denwood \email{m.denwood@vet.gla.ac.uk} funded as part of the DEFRA VTRI project 0101.}
-
 \examples{
 
-# use a zero-inflated lognormal Poisson model to analyse some count data, and suppressing JAGS output:
+# use a zero-inflated lognormal Poisson model to analyse some count 
+# data, and suppressing JAGS output:
 
 \dontrun{
-bayescount.single(data=c(0,5,3,7,0,4,3,8,0), model="ZILP", silent.jags=TRUE)
+bayescount.single(data=c(0,5,3,7,0,4,3,8,0), model="ZILP", 
+silent.jags=TRUE)
 }
 
 }

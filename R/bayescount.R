@@ -7,17 +7,6 @@ runname <- name
 
 div <- divide.data  # Need both to prevent list data being divided twice
 
-if(!require(runjags)){
-	stop("The required library 'runjags' is not installed")
-}
-if(!require(lattice)){
-	stop("The required library 'lattice' is not installed")
-}
-if(!require(coda)){
-	stop("The required library 'coda' is not installed")
-}
-
-
 testwritable <- new_unique("test")
 if(testwritable=="Directory not writable"){
 	cat("\nThe working directory is not writable.  Please change the working directory\n\n")
@@ -635,7 +624,7 @@ for(j in 1:length(all.models)){
 	if(write.file==FALSE){
 		unlink(name)
 	}
-	assign(paste(runname, ".", model, ".results", sep=""), results, pos=".GlobalEnv")
+#	assign(paste(runname, ".", model, ".results", sep=""), results, pos=".GlobalEnv")
 	if((model=="GP") | (model=="ZIGP") | (model=="WP") | (model=="ZIWP")){
 		assign(paste(model, ".largeod", sep=""), largeod)
 	}

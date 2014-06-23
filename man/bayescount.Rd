@@ -51,23 +51,30 @@ The results files consist of a table (or matrix) with the following results for 
    \code{\link[runjags]{autorun.jags}}, \code{\link{bayescount.single}}, \code{\link{likelihood}}, and \code{\link{fec.power}} for power analysis methods for FEC.
 }
 
-\author{Matthew Denwood \email{m.denwood@vet.gla.ac.uk} funded as part of the DEFRA VTRI project 0101.}
-
 \examples{
 
-# run the function with all values as default, and 'name' and 'data' (from a local .csv file) to be input by the user when prompted:
+# run the function with all values as default, and 'name' and 'data' 
+# (from a local .csv file) to be input by the user when prompted:
 \dontrun{
 bayescount()
 }
 
-# analyse data using zero-inflated gamma Poisson and zero-inflated lognormal Poisson models in 5 text .csv files named 'mydata/data.*numer*.csv' with column labels, and calculating the likelihoods, and limiting each dataset to 30 minutes to achieve convergence:
+# analyse data using zero-inflated gamma Poisson and zero-inflated 
+# lognormal Poisson models in 5 text .csv files named 
+# 'mydata/data.*numer*.csv' with column labels, and calculating the 
+# likelihoods, and limiting each dataset to 30 minutes to achieve 
+# convergence:
 \dontrun{
 for (i in 1:5){
-	bayescount(name=paste("Data ", i, sep=""), data=paste("mydata/data.", i, ".csv", sep=""), model=c("ZIGP", "ZILP"), setnames=TRUE, test = FALSE, likelihood = TRUE, silent.jags=TRUE, max.time="30mins")
+	bayescount(name=paste("Data ", i, sep=""), 
+	data=paste("mydata/data.", i, ".csv", sep=""), model=c("ZIGP", "ZILP"), 
+	setnames=TRUE, test = FALSE, likelihood = TRUE, silent.jags=TRUE, 
+	max.time="30mins")
 }
 }
 
-# analyse local data (2 datasets with 20 animals each with 10 repeat samples) using a zero-inflated lognormal Poisson model:
+# analyse local data (2 datasets with 20 animals each with 10 repeat 
+# samples) using a zero-inflated lognormal Poisson model:
 \dontrun{
 # Simulate some data:
 data <- array(dim=c(20,10,2))
@@ -77,10 +84,12 @@ for(i in 1:20){
 	data[i,,1] <- rpois(10, means1[i])
 	data[i,,2] <- rpois(10, means2[i])
 }
-# Missing data is permissible but means the likelihood cannot be calculated - a warning will be printed:
+# Missing data is permissible but means the likelihood cannot be 
+# calculated - a warning will be printed:
 data[sample(1:(20*10*2), 10)] <- NA
 # Run the analysis:
-bayescount(name="analysis", data=data, model = "ZILP", setnames=c("Simulated group A", "Simulated group B"), likelihood=TRUE)
+bayescount(name="analysis", data=data, model = "ZILP", 
+setnames=c("Simulated group A", "Simulated group B"), likelihood=TRUE)
 }
 
 }

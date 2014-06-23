@@ -43,8 +43,6 @@ fecrt(name = NA, pre.data = NA, post.data = NA,
    \code{\link{fecrt.power}} and \code{\link{fecrt.power.limits}} for power analysis methods for the FECRT, \code{\link{bayescount}}, \code{\link[runjags]{autorun.jags}}
 }
 
-\author{Matthew Denwood \email{m.denwood@vet.gla.ac.uk} funded as part of the DEFRA VTRI project 0101.}
-
 \references{M. J. Denwood, S. W. J. Reid, S. Love, M. K. Nielsen, L. Matthews, I. J. McKendrick, and G. T. Innocent.
 Comparison of three alternative methods for analysis of equine Faecal Egg Count Reduction Test data. Prev. Vet. Med. (2009), doi:10.1016/j.prevetmed.2009.11.009}
 

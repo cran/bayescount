@@ -26,28 +26,36 @@ likelihood(model, data, mean=NA, variance=NA,
 \value{The (log) likelihood is returned either as a vector of length equal to the number of iterations representing the likelihood at each iteration if raw.output==TRUE, or a summary of the results (median, maximum and 95\% highest posterior density interval (see \code{\link[coda]{HPDinterval}}) if raw.output==FALSE.  It is possible for the functions that use integrate to produce incalculable probabilities for some iterations, in which case the likelihood for these iterations are returned as missing data (and therefore the summary statistics for the whole simulation are also returned as missing data).  If only 1 iteration of values for mean/variance/shape/scale are provided, a single value for likelihood is output.
 }
 \seealso{
-   \code{\link{bayescount}}, \code{\link{bayescount.single}}, \code{\link{maximise.likelihood} for a simple maximum likelihood solution using likelihood()}
+   \code{\link{bayescount}}, 
+   
+   \code{\link{bayescount.single}}, 
+   
+   \code{\link{maximise.likelihood}}
 }
-
-\author{Matthew Denwood \email{m.denwood@vet.gla.ac.uk} funded as part of the DEFRA VTRI project 0101.}
 
 \examples{
 
-# calculate the likelihood of obtaining a set of count data from a zero-inflated Poisson distribution with set mean and zero-inflation values
+# calculate the likelihood of obtaining a set of count data from 
+# a zero-inflated Poisson distribution with set mean and zero-inflation 
+# values
 
 data <- rpois(100, 10)
 data[1:15] <- 0
 
 likelihood('ZIP', data, mean=10, zi=15)
 
-# now calculate the likelihood for the same data using an MCMC object to provide the values for mean and zero-inflation
+# now calculate the likelihood for the same data using an MCMC object 
+# to provide the values for mean and zero-inflation
 
 \dontrun{
 values <- bayescount.single(data, model='ZISP', raw.output=TRUE)
 means <- c(values[,'mean'][[1]], values[,'mean'][[2]])
-zis <- (1-c(values[,'prob'][[1]], values[,'prob'][[2]]))*100  # The function outputs the prevalence of disease when raw.ouput is TRUE, so zero-inflation must be calculated from this
+zis <- (1-c(values[,'prob'][[1]], values[,'prob'][[2]]))*100 
+# The function outputs the prevalence of disease when raw.ouput is 
+# TRUE, so zero-inflation must be calculated from this
 
-likes <- likelihood('ZIP', data, mean=means, zi=zis, raw.output=TRUE)$likelihood
+likes <- likelihood('ZIP', data, mean=means, zi=zis, 
+raw.output=TRUE)$likelihood
 hist(likes, breaks='fd', col='red')
 }
 

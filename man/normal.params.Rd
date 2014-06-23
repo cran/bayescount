@@ -17,8 +17,6 @@ normal.params(log.mean, log.sd, coeff.variation=sqrt(exp(log.sd^2)-1))}
    \code{\link{bayescount}}, \code{\link{lnormal.params}}
 }
 
-\author{Matthew Denwood \email{m.denwood@vet.gla.ac.uk} funded as part of the DEFRA VTRI project 0101.}
-
 \examples{
 
 \dontrun{

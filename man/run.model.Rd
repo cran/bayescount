@@ -26,11 +26,10 @@ run.model(data=stop("No data supplied"),
    \code{\link{bayescount}}, \code{\link{bayescount.single}}
 }
 
-\author{Matthew Denwood \email{m.denwood@vet.gla.ac.uk} funded as part of the DEFRA VTRI project 0101.}
-
 \examples{
 
-#  Return the model specification and starting values for a lognormal Poisson, then run the model using run.jags:
+#  Return the model specification and starting values for a 
+# lognormal Poisson, then run the model using run.jags:
 
 \dontrun{
 data <- rpois(100, rlnorm(3, 0.2))
@@ -41,7 +40,8 @@ datastring <- strings[[2]]
 initial.values <- strings[[3]]
 monitors <- strings[[4]]
 
-run.jags(model=modelstring, inits=initial.values, check.conv=TRUE, data=datastring, monitor=monitors)
+run.jags(model=modelstring, inits=initial.values, check.conv=TRUE, 
+data=datastring, monitor=monitors)
 
 #  This is equivalent to using:
 

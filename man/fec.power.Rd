@@ -40,6 +40,4 @@ fec.power(meanepg=200, g.faeces=3, sensitivity=1/25,
    \code{\link{fec.power.limits}}, \code{\link{fecrt.power}}, \code{\link{fecrt}}, \code{\link{bayescount}}
 }
 
-\author{Matthew Denwood \email{m.denwood@vet.gla.ac.uk} funded as part of the DEFRA VTRI project 0101.}
-
 \keyword{models}

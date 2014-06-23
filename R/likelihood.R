@@ -493,7 +493,7 @@ likelihood <- function(model=stop("Please specify a distribution"), data=stop("D
 		
 		}
 		results <- matrix(data=as.numeric(results), nrow=length(results[,1]), ncol=length(results[1,]))})
-		assign('gresults', results, pos=.GlobalEnv)
+#		assign('gresults', results, pos=.GlobalEnv)
 		likelihoods <- apply(results, 1, sum)
 		
 }

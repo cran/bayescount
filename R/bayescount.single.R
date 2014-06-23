@@ -1,16 +1,6 @@
 bayescount.single <- function(data = stop("Data must be specified"), model="ZILP", alt.prior = FALSE, adjust.zi.mean = FALSE, raw.output = FALSE, likelihood=FALSE, ...){
 
 
-if(!require(runjags)){
-	stop("The required library 'runjags' is not installed")
-}
-if(!require(lattice)){
-	stop("The required library 'lattice' is not installed")
-}
-if(!require(coda)){
-	stop("The required library 'coda' is not installed")
-}
-
 passthrough <- list(...)
 if(is.null(passthrough$max.time)) passthrough$max.time <- "1hr"
 if(is.null(passthrough$interactive)) passthrough$interactive <- FALSE

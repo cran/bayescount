@@ -11,16 +11,6 @@ uci <- 1-((1-(confidence/100))/2)
 
 div <- divide.data 
 
-if(!require(runjags)){
-	stop("The required library 'runjags' is not installed")
-}
-if(!require(lattice)){
-	stop("The required library 'lattice' is not installed")
-}
-if(!require(coda)){
-	stop("The required library 'coda' is not installed")
-}
-
 passthrough <- list(...)
 if(is.null(passthrough$max.time)) passthrough$max.time <- "1hr"
 if(is.null(passthrough$interactive)) passthrough$interactive <- FALSE
