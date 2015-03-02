@@ -1,10 +1,16 @@
 likelihood <- function(model=stop("Please specify a distribution"), data=stop("Data must be specified"), mean=NA, variance=NA, zi=NA, shape=NA, scale=NA, iterations=min(1000, (length(as.matrix(mean)[,1])*length(shape))), log=TRUE, silent=FALSE, raw.output=FALSE){
 	
-	## Cheat to stop function warning of non-zero inflated model when called from bayescount.single():
-	
 	model <- toupper(model)
 	
+
+	## Cheat to stop function warning of non-zero inflated model when called from bayescount.single() and multiple deprecation warnings
 	zi.warn <- TRUE
+	if(class(silent)=='logical')
+		warning('The likelihood function is deprecated and will be removed from version 1.0 of bayescount (expected to be released in mid 2015)')
+	if(silent=='TRUE')
+		silent <- TRUE
+	if(silent=='FALSE')
+		silent <- FALSE
 	
 	if(silent=="noziwarnTRUE"){
 		zi.warn <- FALSE
@@ -514,7 +520,7 @@ likelihood <- function(model=stop("Please specify a distribution"), data=stop("D
 			if(any(is.na(results))){
 				likeli.an <- c(l.95=NA, median=NA, u.95=NA, MAX=NA)
 			}else{
-				hpd <- HPDinterval(as.mcmc(likelihoods))
+				hpd <- coda::HPDinterval(coda::as.mcmc(likelihoods))
 				likeli.an <- c(l.95=hpd[1], median=median(likelihoods), u.95=hpd[2], MAX=max(likelihoods))
 			}
 			return(likeli.an)

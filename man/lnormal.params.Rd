@@ -14,7 +14,7 @@ lnormal.params(mean, sd, coeff.variation)}
 \value{A list with elements representing the mean of the lognormal distribution, the standard deviation of the lognormal distribution, and the coefficient of variation.
 }
 \seealso{
-   \code{\link{bayescount}}, \code{\link{normal.params}}
+   \code{\link{normal.params}}
 }
 
 \examples{

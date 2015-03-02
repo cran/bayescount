@@ -1,6 +1,8 @@
 bayescount <- function(name = NA, data = NA, setnames = NA, model = c("ZILP"), divide.data = 1, scale.mean = divide.data, remove.all.zeros = TRUE, test = TRUE, alt.prior = FALSE, write.file = TRUE, adjust.zi.mean = FALSE, likelihood=FALSE, record.chains=FALSE, ...)
 {
 
+	warning('The bayescount function is deprecated and will be removed from version 1.0 of bayescount (expected to be released in mid 2015)')
+
 datanames <- setnames
 omit.zeros <- remove.all.zeros
 runname <- name
@@ -18,7 +20,7 @@ passthrough <- list(...)
 
 if(!is.null(passthrough$raw.output)) stop("Unable to return raw output of models when using the bayescount function.  Either use the bayescount.single function or use the record.chains option to write raw output to file for each dataset")
 
-if(is.null(passthrough$silent.jags)) silent.jags <- formals(autorun.jags)$silent.jags else silent.jags <- passthrough$silent.jags
+if(is.null(passthrough$silent.jags)) silent.jags <- eval(formals(autorun.jags)$silent.jags) else silent.jags <- passthrough$silent.jags
 if(is.null(passthrough$jags)) jags <- eval(formals(autorun.jags)$jags) else jags <- passthrough$jags
 
 test.jags <- testjags(jags, silent=TRUE)
@@ -431,9 +433,10 @@ if(test==TRUE){
 proceed <- FALSE
 setdata <- (data[,,1])
 cat("\n\nTesting the model function\n")
-suppressWarnings(output <- run.model(model = model[1], burnin=1000, sample=1000, jags = jags, data = setdata, alt.prior = alt.prior, silent.jags = TRUE, check.conv=FALSE))
+s1 <- try(testmod <- run.model(model = model[1], jags = jags, data = setdata, alt.prior = alt.prior, silent.jags = TRUE, summarise=FALSE))
+s2 <- try(output <- extend.jags(testmod, burnin=1000, sample=1000, jags = jags, silent.jags = TRUE, summarise=FALSE))
 
-if(class(output)!="list"){
+if(class(s1)=="try-error" || class(s2)=='try-error'){
 	proceed <- ask(prompt = "The test (first) dataset returned an error.  Continue with other datasets?", type="logical")
 }else{
 	cat("Test completed successfully\n")
@@ -542,7 +545,7 @@ for(j in 1:length(all.models)){
 			#if(sum(is.na(setdata[,1])) > 0 && remove.missing==FALSE){
 			#	cat("\n*WARNING*  There are ", sum(is.na(setdata)), " missing and/or non-numeric datapoints in dataset '", names[i], "'\n", sep="")
 			#}
-			output <- bayescount.single(model=model, data = setdata, alt.prior = alt.prior, adjust.zi.mean = adjust.zi.mean, likelihood=likelihood, raw.output=if(record.chains){list(name=paste(strsplit(name, ".csv")[[1]], collapse=".csv"), setname=names[i])}else{FALSE}, ...)
+			output <- bayescount.single(model=model, data = setdata, alt.prior = alt.prior, adjust.zi.mean = adjust.zi.mean, likelihood=likelihood, raw.output=if(record.chains){list(name=paste(strsplit(name, ".csv")[[1]], collapse=".csv"), setname=names[i])}else{FALSE}, silent.jags=silent.jags, ...)
 			
 			if(((output[2]=="1") | (output[2]=="5")) && (sum(na.omit(output[1] == "1")) == 0)){
 				cat("The ", model, " model for dataset '", names[i], "' returned an error", sep="")

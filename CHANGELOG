@@ -1,5 +1,4 @@
-If you find bugs in the functions provided (gasp!), or if you have any comments/criticisms/questions about the features, then please feel free to email me at m.denwood@vet.gla.ac.uk.  Thanks!
-
+If you find a bug, or if you have any comments/criticisms/questions about this package, then please feel free to email the package developer.
 
 OPEN ISSUES
 
@@ -11,11 +10,26 @@ None known.
 
 FEATURES TO BE IMPLEMENTED
 
-None planned.
+Large-scale changes are planned for version 1, including removal of the bayescount and likelihood/maximise.likelihood functions.  I hope to have these submitted to CRAN in mid-2015.  Additional options for precision, power and analysis of count and FECRT models will be available in a more coherent manner
 
 
 
 VERSION HISTORY
+
+Version 0.9.99
+
+NEW FEATURES
+
+A more robust fecrt.model function with more options
+
+Functions to be removed from version 1 are now deprecated
+
+BUG FIXES
+
+Issue fixed preventing the citation file being parsed correctly by CRAN
+
+New contact details and bug fixes in manuals
+
 
 
 Version 0.9.9

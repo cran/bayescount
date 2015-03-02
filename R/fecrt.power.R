@@ -220,3 +220,5 @@ return(output)
 
 FECRT.power.limits <- fecrt.power.limits
 FECRT.power <- fecrt.power
+fecrt.precision <- fecrt.power.limits
+FECRT.precision <- fecrt.power.limits

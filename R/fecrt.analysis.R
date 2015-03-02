@@ -1,4 +1,4 @@
-fecrt <- function(name = NA, pre.data = NA, post.data = NA, data = list(pre=pre.data, post=post.data), animal.names = FALSE, efficacy=95, confidence=95, restrict.efficacy = TRUE, control.animals = FALSE, paired.model = FALSE, zero.inflation = FALSE, divide.data = 1, record.chains = FALSE, write.file = FALSE, bootstrap.iters=10000, plot.graph = TRUE, skip.mcmc = FALSE, ...){
+fecrt.analysis <- function(name = NA, pre.data = NA, post.data = NA, data = list(pre=pre.data, post=post.data), animal.names = FALSE, efficacy=95, confidence=0.95, control.animals=FALSE, divide.data = 1, record.chains = FALSE, write.file = FALSE, bootstrap.iters=10000, plot.graph = TRUE, skip.mcmc = FALSE, ...){
 
 runname <- name
 
@@ -6,35 +6,37 @@ runname <- name
 # individual.analysis=paired.model, 
 #if(!paired.model & individual.analysis) stop("Individual analysis is only available using the paired model")
 
-lci <- 0+((1-(confidence/100))/2)
-uci <- 1-((1-(confidence/100))/2)
+lci <- 0+((1-(confidence))/2)
+uci <- 1-((1-(confidence))/2)
 
 div <- divide.data 
 
 passthrough <- list(...)
-if(is.null(passthrough$max.time)) passthrough$max.time <- "1hr"
-if(is.null(passthrough$interactive)) passthrough$interactive <- FALSE
-if(is.null(passthrough$plots)) passthrough$plots <- FALSE
+# Override some defaults:
+if(is.null(passthrough$max.time))
+	passthrough$max.time <- "1hr"
+if(is.null(passthrough$interactive))
+	passthrough$interactive <- FALSE
 
-arguments <- formals(autorun.jags)
+stopifnot(length(confidence)==1 && confidence>0 && confidence<1)
+passthrough$confidence <- confidence
 
-for(i in 1:length(passthrough)){
-	if(is.null(arguments[[names(passthrough)[i]]])){
-		warning(paste("'", names(passthrough)[i], "' is not an argument to autorun.jags and was ignored"))
-	}else{
-		arguments[[names(passthrough)[i]]] <- passthrough[[i]]
-	}
-}
+if(any(names(passthrough)=='paired.model'))
+	paired.model <- passthrough$paired.model
+else
+	paired.model <- FALSE
 
-jags <- eval(arguments$jags)
-silent.jags <- arguments$silent.jags
+#arguments <- formals(autoextend.jags)
 
-test.jags <- testjags(jags, silent=TRUE)
-if(test.jags[[2]][1]==FALSE){
-	cat("Unable to call JAGS using '", jags, "'\n", sep="")
-	stop("Unable to call JAGS")
-}
+#for(i in 1:length(passthrough)){
+#	if(is.null(arguments[[names(passthrough)[i]]])){
+		#warning(paste("'", names(passthrough)[i], "' is not an argument to autoextend.jags and was ignored"))
+#	}else{
+#		arguments[[names(passthrough)[i]]] <- passthrough[[i]]
+#	}
+#}
 
+arguments <- passthrough[names(passthrough)%in%names(formals(autoextend.jags))]
 
 testwritable <- new_unique("test")
 if(testwritable=="Directory not writable"){
@@ -80,12 +82,12 @@ if(class(data)!="character" & class(data)!="matrix"){
 
 
 cat("\n--- FECRT: Analyse faecal egg cout reduction test data using a Bayesian distributional simulation model ---\n\n")
-cat("*PLEASE NOTE:  THIS SOFTWARE IS INTENDED FOR EDUCATIONAL PURPOSES ONLY AND SHOULD NOT BE RELIED UPON FOR REAL WORLD APPLICATIONS*\n")
 cat("*ANALYSING DATA USING MCMC SAMPLING CAN PRODUCE MISLEADING RESULTS IF USED INAPPROPRIATELY*\n\n")
 
 if(is.na(runname)){
 	runname <- ask(prompt = "Please enter a name for this analysis:  ", type="character")
 }
+name <- runname
 
 datain <- data
 datana <- data
@@ -224,170 +226,41 @@ if(length(pre)!=length(post)) warning("Pre and post treatment data are of differ
 if(sum(control.animals)==0) cat("Assessing the faecal egg count reduction for ", N, " animals.  This will take some time...\n", sep="") else cat("Assessing the faecal egg count reduction for ", N, " animals (including ", sum(control.animals==1), " control animals).  This will take some time...\n", sep="")
 
 
-#### Not using unfixed efficacy currently but will leave it in the code for future work.  It currently won't work with Txcont stuff though, so unless this is removed fix.efficy=FALSE will break it:
-fix.efficacy <- TRUE
-
-#### Not using controls as possibility to boost inference about pre.mean but required if all treatment animals:
-usecontrol <- sum(control.animals)>0
-
-pairedmodel <- paste("model{
-
-	for(row in 1:N){
-	for(sample in 1:Pre.Samples){
-		for(repeat in 1:Pre.Replicates){
-			Pre[repeat,sample,row] ~ dpois(xpre.lambda[sample,row])
-		}
-		xpre.lambda[sample,row] <- ", if(zero.inflation) "probpos[row] * ", "ind.pre.mean[row] * pre.gamma[sample,row]
-		pre.gamma[sample,row] ~ dgamma(pre.disp, pre.disp)T(10^-200,)
-	}
-	for(sample in 1:Post.Samples){
-		for(repeat in 1:Post.Replicates){
-			Post[repeat,sample,row] ~ dpois(xpost.lambda[sample,row])
-		}
-		xpost.lambda[sample,row] <- ", if(zero.inflation) "probpos[row] * ", "ind.post.mean[row] * post.gamma[sample,row]
-		post.gamma[sample,row] ~ dgamma(post.disp[Txcont[row]], post.disp[Txcont[row]])T(10^-200,)
-	}	
-
-		ind.pre.mean[row] <- pre.mean * animal.gamma[row]
-
-		animal.gamma[row] ~ dgamma(animal.disp, animal.disp)T(10^-200,)
-
-		ind.post.mean[row] <- ind.pre.mean[row] * ind.delta.mean[row]
-
-		", if(zero.inflation) "probpos[row] ~ dbern(prob)", "
-
-		", if(fix.efficacy) "ind.delta.mean[row] <- delta.m[Txcont[row]] " else "ind.delta.mean[row] ~ dbeta(alpha, beta)", "
-
-	}
-
-	", if(!fix.efficacy) "
-	alpha ~ dunif(0,1000)
-	beta <- (alpha - (delta.mean*alpha)) / delta.mean
-	", "
-
-	# these represent within animal variability so can change with tx:
-	pre.disp <- 1 / ia
-	post.disp[1] <- pre.disp * delta.disp
-	post.disp[2] <- pre.disp
-	animal.disp <- 1 / iaa
-
-	# Priors
-	pre.mean ~ dunif(0.001, 1000)
-	", if(zero.inflation) "prob ~ dunif(0,1)", "
-
-	ia <- exp(logia)
-	logia ~ dunif(-9.21,4.6)
-	iaa <- exp(logiaa)
-	logiaa ~ dunif(-9.21,4.6)
-
-	ddispl <- ", {if(TRUE) exp(-9.21) else 0.02}, " / pre.disp;
-	ddispu <- ", {if(TRUE) exp(4.6) else 100}, " / pre.disp;
-
-	", if(usecontrol) "delta.mean <- delta.m[1] / delta.m[2]" else "delta.mean <- delta.m[1]", "
-
-	delta.m[1] ~ ", {if(restrict.efficacy) "dbeta(1,1)" else "dunif(0, 10)"}, "
-	delta.m[2] <- exp(ldelta.m)
-	ldelta.m ~ dunif(-4,4)
-
-	delta.disp ~ dlnorm(0, 0.01)T(0.001,1000)
-
-}", sep="")
-
-	
-
-singlemodel <- paste("model{
-
-for(row in 1:N){
-for(sample in 1:Pre.Samples){
-	for(repeat in 1:Pre.Replicates){
-		Pre[repeat,sample,row] ~ dpois(xpre.lambda[sample,row])
-	}
-	xpre.lambda[sample,row] <- ", if(zero.inflation) "probpos[row] * ", "pre.mean * pre.gamma[sample,row]
-	pre.gamma[sample,row] ~ dgamma(pre.disp, pre.disp)T(10^-200,)
-}
-for(sample in 1:Post.Samples){
-	for(repeat in 1:Post.Replicates){
-		Post[repeat,sample,row] ~ dpois(xpost.lambda[sample,row])
-	}
-	xpost.lambda[sample,row] <- ", if(zero.inflation) "probpos[row] * ", "post.mean[Txcont[row]] * post.gamma[sample,row]
-	post.gamma[sample,row] ~ dgamma(post.disp[Txcont[row]], post.disp[Txcont[row]])T(10^-200,)
-}	
-
-", if(zero.inflation) "probpos[row] ~ dbern(prob)","
-	}
-
-	pre.disp <- 1 / ia
-
-	post.mean[1] <- pre.mean * delta.m[1]
-	post.mean[2] <- ", if(usecontrol) "pre.mean * delta.m[2]" else "pre.mean", "
-	post.disp[1] <- pre.disp * delta.disp
-	post.disp[2] <- pre.disp
-
-	", if(usecontrol) "delta.mean <- delta.m[1] / delta.m[2]" else "delta.mean <- delta.m[1]", "
-
-	# Priors
-	pre.mean ~ dunif(0.001, 1000)
-", if(zero.inflation) "prob ~ dunif(0,1)","
-	ia <- exp(logia)
-	logia ~ dunif(-9.21,4.6)#4.6
-
-	delta.m[1] ~ ", {if(restrict.efficacy) "dbeta(1,1)" else "dunif(0, 10)"}, "
-	delta.m[2] <- exp(ldelta.m)
-	ldelta.m ~ dunif(-4,4)
-	delta.disp ~ dlnorm(0, 0.01)T(0.001, 1000)
-
-	}", sep="")
-
-
-
-probposinit <- as.integer(apply(pre+post, 3, sum) < 0)
-probinit <- max(sum(probposinit) / length(probposinit), 0.1)
-
-preg <- matrix(1, ncol=N, nrow=dim(pre)[2])
-postg <- matrix(1, ncol=N, nrow=dim(post)[2])
-
-datastring <- dump.format(list(Pre=pre, Post=post, N=N, Pre.Samples = dim(pre)[2], Pre.Replicates = dim(pre)[1], Post.Samples = dim(post)[2], Post.Replicates = dim(post)[2], Txcont=control.animals+1))
-
-if(!paired.model){
-
-	model <- singlemodel
-	
-	inits1 <- dump.format(list(probpos=probposinit, pre.mean=max(mean(pre,na.rm=TRUE)*2, 1), delta.m=c(0.01,NA), ldelta.m=0, logia=log(0.1), delta.disp=2, pre.gamma=preg, post.gamma=postg, prob=probinit))
-
-	inits2 <- dump.format(list(probpos=replicate(length(pre), 1), pre.mean=max(mean(pre,na.rm=TRUE)*0.5, 1), delta.m=c(0.99,NA), ldelta.m=0, logia=log(10), delta.disp=0.5, pre.gamma=preg, post.gamma=postg, prob=1))
-	
-		
-}else{
-
-	model <- pairedmodel
-		
-	inits1 <- dump.format(list(probpos=probposinit, pre.mean=max(mean(pre,na.rm=TRUE)*2, 1), animal.gamma=replicate(N,1), delta.m=c(0.01,NA), ldelta.m=0, logia=log(0.1), logiaa=log(0.1), delta.disp=2, pre.gamma=preg, post.gamma=postg, prob=probinit))
-
-	inits2 <- dump.format(list(probpos=replicate(length(pre), 1), pre.mean=max(mean(pre,na.rm=TRUE)*0.5, 1), animal.gamma=replicate(N,1), delta.m=c(0.99,NA), ldelta.m=0, logia=log(10), logiaa=log(10), delta.disp=0.5, pre.gamma=preg, post.gamma=postg, prob=1))
-	
-}
-
-monitor=c("pre.mean", "delta.mean", "delta.disp")
-if(zero.inflation) monitor <- c(monitor, "prob")
 
 # Individual analysis has been removed for now; may add it back in later if I use varying efficacy
 #if(individual.analysis) monitor <- c(monitor, "ind.delta.mean") #individual.analysis can only happen for paired model
 #if(zero.inflation & individual.analysis) monitor <- c(monitor, "probpos")
 
 if(!skip.mcmc){
-	
-	arguments$model <- model
-	arguments$inits <- c(inits1, inits2)
-	arguments$n.chains <- length(arguments$inits)
-	arguments$data <- datastring
-	arguments$monitor <- monitor
-	arguments$silent.jags <- list(silent.jags=arguments$silent.jags, killautocorr=TRUE)
-	arguments$plots <- FALSE
 
-
-	class(arguments) <- "list"
+	# Get model from fecrt.model:
 	
-	results <- do.call(autorun.jags, arguments, quote=FALSE)
+	prean=presamp=precont <- pre
+	for(a in 1:N){
+		prean[,,a] <- a
+		precont[,,a] <- control.animals[a]+1
+	}
+	for(s in 1:dim(presamp)[2]){
+		presamp[,s,] <- s
+	}
+	postan=postsamp=postcont <- post
+	for(a in 1:N){
+		postan[,,a] <- a
+		postcont[,,a] <- control.animals[a]+1
+	}
+	for(s in 1:dim(postsamp)[2]){
+		postsamp[,s,] <- s
+	}
+	modeldata <- data.frame(Count=c(as.numeric(pre), as.numeric(post)), Sample=c(as.numeric(presamp), as.numeric(postsamp)), Subject=c(as.numeric(prean), as.numeric(postan)), Control=c(as.numeric(precont), as.numeric(postcont)), Time=c(rep(1, length(as.numeric(pre))), rep(2, length(as.numeric(post)))))
+	
+	arglist <- passthrough
+	arglist$data <- modeldata
+	
+	rjo <- do.call('fecrt.model', arglist, quote=FALSE)
+	
+	arguments$runjags.object <- rjo
+	class(arguments) <- 'list'
+	results <- do.call('autoextend.jags', arguments, quote=FALSE)
 	
 	#results <- autorun.jags(data=datastring, model=model, monitor=monitor, n.chains=2, inits=c(inits1, inits2), silent.jags = list(silent.jags=silent.jags, killautocorr=TRUE), plots = FALSE, thin.sample = TRUE, interactive=interactive, max.time=max.time, ...)
 
@@ -416,7 +289,7 @@ blankquant <- quantile(0, probs=c(lci, 0.5, uci))
 
 if(any(c(dim(post)[1:2], dim(pre)[1:2])>1)){
 	cat("Bootstrap and WAAVP calculations are not available for repeated pre and/or post treatment egg counts\n")
-	boot.reductions = bootquant = method.boot = waavpquant = method.waavp <- NA
+	boot.reductions = bootquant = method.boot = waavpquant = method.waavp =bootprob <- NA
 }else{
 	
 	pre <- apply(pre.data, 3, mean) # Should only be 1 datapoint
@@ -496,47 +369,21 @@ if(!skip.mcmc){
 
 cat("Calculating the Bayesian method analysis...\n")
 
-reduction <- (1-unlist(results$mcmc[,"delta.mean"]))*100
-pre.mean <- (unlist(results$mcmc[,"pre.mean"]))
-deltashape <- unlist(results$mcmc[,"delta.disp"])
-if(zero.inflation) zi <- (1-unlist(results$mcmc[,"prob"]))*100 else zi <- NA
+reduction <- summary(results, vars='reduction(%)')
+pre.mean <- summary(results, vars='groupmean')
 
-vars <- nvar(results$mcmc)
+mcred <- as.numeric(combine.mcmc(results, vars='reduction(%)'))
+mcmcprob <- sum(mcred < efficacy) / length(mcred) * 100
 
-n <- (vars-(length(monitor)-(1+zero.inflation)))/(1+zero.inflation)
-
-medred <- median(reduction)
-ci <- HPDinterval(as.mcmc(reduction), prob=(0.01*confidence))
-l95red <- ci[1]
-u95red <- ci[2]
 mcmcquant <- blankquant
-mcmcquant[1] <- l95red
-mcmcquant[3] <- u95red
-mcmcquant[2] <- medred
+mcmcquant[2] <- reduction[,'Mean']
+mcmcquant[1] <- reduction[,paste('Lower',confidence*100, sep='')]
+mcmcquant[3] <- reduction[,paste('Upper',confidence*100, sep='')]
 
 meanquant <- blankquant
-meanquant[2] <- median(pre.mean*divide.data)
-ci <- HPDinterval(as.mcmc(pre.mean*divide.data), prob=(0.01*confidence))
-meanquant[1] <- ci[1]
-meanquant[3] <- ci[2]
-
-ziquant <- blankquant
-ziquant[2] <- if(zero.inflation) median(zi) else NA
-ci <- if(zero.inflation) HPDinterval(as.mcmc(zi), prob=(0.01*confidence)) else c(NA,NA)
-ziquant[1] <- ci[1]
-ziquant[3] <- ci[2]
-
-# post.disp = pre.disp * delta.disp
-# 1/pod^2 = 1/prd^2 * dd
-# 1/pod^2 = 1/prd^2 * dd
-# prd^2 = pod^2 * dd
-
-dshapequant <- blankquant
-dshapequant[2] <- median(deltashape)
-ci <- HPDinterval(as.mcmc(deltashape), prob=(0.01*confidence))
-dshapequant[1] <- ci[1]
-dshapequant[3] <- ci[2]
-
+meanquant[2] <- pre.mean[,'Mean']*divide.data
+meanquant[1] <- pre.mean[,paste('Lower',confidence*100, sep='')]*divide.data
+meanquant[3] <- pre.mean[,paste('Upper',confidence*100, sep='')]*divide.data
 
 mcmcprob <- sum(reduction < efficacy) / length(reduction) * 100
 
@@ -546,13 +393,13 @@ method.mcmc <- if(mcmcprob >= (uci*100)) "Confirmed resistant" else if(mcmcprob 
 #method3 <- switch(class, "1"="susceptible", "2"="possible", "3"="probable", "4"="resistant")
 
 }else{
-	method.mcmc = mcmcquant = mcmcprob = ziquant = dshapequant = meanquant = indredquant = ind.prob.inf = ind.zi.probs = converged = efficacy = restrict.efficacy <- NA
+	method.mcmc = mcmcquant = mcmcprob = meanquant = converged = efficacy <- NA
 }
 
 cat("Finished calculations\n")
 
-output <- list(results.mcmc=method.mcmc, quant.mcmc=mcmcquant, results.boot=method.boot, quant.boot=bootquant, results.waavp=method.waavp, quant.waavp = waavpquant, prob.mcmc=mcmcprob, prob.boot=bootprob, ziquant=ziquant, dshapequant=dshapequant, meanquant=meanquant, confidence=confidence, converged=converged, efficacy=efficacy, restrict.efficacy=restrict.efficacy, animal.names=names, name=name)
-if(record.chains) output <- c(output, list(mcmc=results$mcmc))
+output <- list(results.mcmc=method.mcmc, quant.mcmc=mcmcquant, results.boot=method.boot, quant.boot=bootquant, results.waavp=method.waavp, quant.waavp = waavpquant, prob.mcmc=mcmcprob, prob.boot=bootprob, meanquant=meanquant, confidence=confidence, converged=converged, efficacy=efficacy, animal.names=names, name=name)
+if(record.chains) output <- c(output, list(mcmc=coda::as.mcmc.list(results)))
 
 #browser()
 
@@ -562,7 +409,7 @@ if(write.file){
 	print.fecrt.results(output, filename=filename)
 	filename <- new_unique(paste(name, ".graph",sep=""), ".pdf", ask=arguments$interactive)
 	pdf(file=filename)
-	if(!skip.mcmc) hist(reduction, col="red", breaks="fd", main="Posterior distribution for the true reduction", freq=FALSE, ylab="Probability", xlab="True FEC reduction (%)", xlim=c(0, 100))
+	if(!skip.mcmc) hist(mcred, col="red", breaks="fd", main="Posterior distribution for the true reduction", freq=FALSE, ylab="Probability", xlab="True FEC reduction (%)", xlim=c(0, 100))
 	abline(v=efficacy)
 	dev.off()
 	if(record.chains) save(results, file=new_unique(paste("fecrt.", name, sep=""), ".Rsave", ask=FALSE))
@@ -570,7 +417,7 @@ if(write.file){
 }else{
 	if(plot.graph){
 		if(!skip.mcmc){
-			hist(reduction, col="red", breaks="fd", main="Posterior distribution for the true reduction", freq=FALSE, ylab="Probability", xlab="True FEC reduction (%)", xlim=c(0, 100))
+			hist(mcred, col="red", breaks="fd", main="Posterior distribution for the true reduction", freq=FALSE, ylab="Probability", xlab="True FEC reduction (%)", xlim=c(0, 100))
 			abline(v=efficacy)
 		}
 	}
@@ -579,7 +426,6 @@ if(write.file){
 
 
 cat("\nAnalysis complete\n\n", sep="")
-cat("*PLEASE NOTE:  THIS SOFTWARE IS INTENDED FOR EDUCATIONAL PURPOSES ONLY AND SHOULD NOT BE RELIED UPON FOR REAL WORLD APPLICATIONS*\n")
 cat("*ANALYSING DATA USING MCMC SAMPLING CAN PRODUCE MISLEADING RESULTS IF USED INAPPROPRIATELY*\n\n")
 cat("--- End ---\n\n")
 
@@ -589,4 +435,8 @@ return(output)
 
 }
 
-FECRT <- fecrt
+
+
+FECRT.analysis <- fecrt.analysis
+fecrt <- fecrt.analysis
+FECRT <- fecrt.analysis

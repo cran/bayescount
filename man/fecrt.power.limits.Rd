@@ -1,14 +1,14 @@
-\name{fecrt.power.limits}
+\name{fecrt.precision}
+\alias{FECRT.precision}
+\alias{fecrt.precision}
 \alias{fecrt.power.limits}
 \alias{FECRT.power.limits}
-\title{FECRT Power Analysis Calculations (find tolerance)}
+\title{FECRT Predicted Precision Calculations}
 \description{
-Finds the appropriate tolerance with which to consider the observed mean for a faecal egg count reduction test with the given combination of power and other parameters.  The power is calculated using Monte Carlo integration, and confidence intervals for the true power are produced.  Tolerance can be defined as either a lower limit only if upper.limit is defined, as an upper limit only if lower.limit is defined, or as both (equidistant) limits if neither are defined.  This function can be used for example to determine the upper limit for a true reduction of 80\% by setting lower.limit=0, or to determine the lower limit for a true reduction of 99\% by setting upper.limit=100.
-
-*THIS SOFTWARE IS INTENDED FOR EDUCATIONAL PURPOSES ONLY AND SHOULD NOT BE RELIED UPON FOR REAL WORLD APPLICATIONS*
+Finds the appropriate tolerance with which to consider the observed mean for a faecal egg count reduction test with the given combination of power and other parameters.  The precision is calculated using Monte Carlo integration, and confidence intervals for the true power are produced.  Tolerance can be defined as either a lower limit only if upper.limit is defined, as an upper limit only if lower.limit is defined, or as both (equidistant) limits if neither are defined.  This function can be used for example to determine the upper limit for a true reduction of 80\% by setting lower.limit=0, or to determine the lower limit for a true reduction of 99\% by setting upper.limit=100.
 }
 \usage{
-fecrt.power.limits(meanepg=200, reduction = 95, g.faeces=3, 
+fecrt.precision(meanepg=200, reduction = 95, g.faeces=3, 
    sensitivity=1/25, replicates=1, animals=10, pre.coeffvarrep=0.4, 
    pre.coeffvarind=0.3, pre.coeffvargroup=0.7, post.coeffvarrep=0.4, 
    post.coeffvarind=0.3, post.coeffvargroup=0.7, true.sample=FALSE, 
@@ -39,7 +39,7 @@ fecrt.power.limits(meanepg=200, reduction = 95, g.faeces=3,
 \value{Returns a list containing the elements 'limits', which is the calculated lower and upper tolerance level which provides the required power, and 'power' which specifies the median estimate and confidence intervals for the true power.  The true power returned may not exactly match the required power input due to the integer nature of FECRT data.
 }
 \seealso{
-   \code{\link{fecrt.power}}, \code{\link{fec.power.limits}}, \code{\link{fecrt}}, \code{\link{bayescount}}
+   \code{\link{fecrt.power}}, \code{\link{fecrt.analysis}}
 }
 
 \keyword{models}

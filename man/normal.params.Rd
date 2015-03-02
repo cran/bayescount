@@ -14,7 +14,7 @@ normal.params(log.mean, log.sd, coeff.variation=sqrt(exp(log.sd^2)-1))}
 \value{A list with elements representing the mean of the normal distribution, the standard deviation of the normal distribution, and the coefficient of variation.
 }
 \seealso{
-   \code{\link{bayescount}}, \code{\link{lnormal.params}}
+   \code{\link{lnormal.params}}
 }
 
 \examples{

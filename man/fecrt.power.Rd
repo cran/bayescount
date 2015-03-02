@@ -4,8 +4,6 @@
 \title{FECRT Power Analysis Calculations}
 \description{
 Finds the power for a faecal egg count reduction test with the given combination of parameters.  This represents the probability that the observed empirical mean reduction will lie between the lower.limit and upper.limit specified.  The power is calculated using Monte Carlo integration and confidence intervals for the true power are produced.  This function can be used to determine the probability that the observed empirical mean reduction will lie within a the range (for example) 90\% to 100\% if the true reduction is 80\% (the false negative rate if considering anthelmintic resistance), or the probability that the observed empirical mean reduction will lie within a the range (for example) 0\% to 90\% if the true reduction is 95\% (the false positive rate if considering anthelmintic resistance)
-
-*THIS SOFTWARE IS INTENDED FOR EDUCATIONAL PURPOSES ONLY AND SHOULD NOT BE RELIED UPON FOR REAL WORLD APPLICATIONS*
 }
 \usage{
 fecrt.power(meanepg=200, reduction = 80, g.faeces=3, 
@@ -39,7 +37,7 @@ fecrt.power(meanepg=200, reduction = 80, g.faeces=3,
 \value{Returns a list containing the elements 'roundedci' and 'ci', which specifies the median and confidence limits (as defined by 'confidence') for the true power both rounded by 'precison' and unrounded.  The additional variables 'within' 'without' and 'total' are also returned, and indicate the number of iterations for which the observed mean reduction fell outside and inside the specified limits and the total number of iterations.
 }
 \seealso{
-   \code{\link{fecrt.power.limits}}, \code{\link{fec.power}}, \code{\link{fecrt}}, \code{\link{bayescount}}
+   \code{\link{fecrt.precision}}, \code{\link{fec.analysis}}
 }
 
 \keyword{models}

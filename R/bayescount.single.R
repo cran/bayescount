@@ -6,18 +6,17 @@ if(is.null(passthrough$max.time)) passthrough$max.time <- "1hr"
 if(is.null(passthrough$interactive)) passthrough$interactive <- FALSE
 if(is.null(passthrough$plots)) passthrough$plots <- FALSE
 
-arguments <- formals(autorun.jags)
+arguments <- formals(runjags::autorun.jags)
+#newargs <- formals(runjags::add.summary)
+#arguments <- c(arguments, newargs[!names(newargs) %in% names(arguments)])
+arguments <- arguments[! names(arguments) %in% c('...', 'runjags.object')]
 
 for(i in 1:length(passthrough)){
-	if(is.null(arguments[[names(passthrough)[i]]])){
-		warning(paste("'", names(passthrough)[i], "' is not an argument to autorun.jags and was ignored"))
-	}else{
-		arguments[[names(passthrough)[i]]] <- passthrough[[i]]
-	}
+	arguments[[names(passthrough)[i]]] <- passthrough[[i]]
 }
 
 jags <- eval(arguments$jags)
-silent.jags <- arguments$silent.jags
+silent.jags <- eval(arguments$silent.jags)
 
 test <- testjags(jags, silent=TRUE)
 if(test[[2]][1]==FALSE){
@@ -143,18 +142,18 @@ oldtwo = oldone <- matrix(NA, ncol=n.params.inc.lambda, nrow=0)
 
 # true.model for model testing:
 strings <- run.model(model=true.model, data=data, alt.prior=alt.prior, call.jags=FALSE, monitor.lambda=likelihood, monitor.deviance=likelihood) # Only using lambda for IP model - run.model corrects for this
-modelstring <- strings[[1]]
-datastring <- strings[[2]]
-new.inits <- strings[[3]]
-monitors <- strings[[4]]
+modelstring <- strings$model
+datastring <- strings$data
+new.inits <- strings$end.state
+monitors <- strings$monitor
 
 arguments$model <- modelstring
 arguments$n.chains <- length(new.inits)
 arguments$data <- datastring
 arguments$monitor <- monitors
-arguments$silent.jags <- list(silent.jags=arguments$silent.jags, killautocorr=TRUE)
 arguments$inits <- new.inits
-arguments$plots <- FALSE
+arguments$plots <- TRUE
+arguments$plot.type <- c('trace','density')
 
 class(arguments) <- "list"
 
@@ -162,10 +161,10 @@ cat("\n")
 cat("Analysing dataset using the ", model, " model...\n", sep="")
 start.time <- Sys.time()
 
-suppressWarnings({success <- try({
+success <- try({
 	#output <- autorun.jags(model=modelstring, n.chains=length(new.inits), data = datastring, monitor=monitors, silent.jags = list(silent.jags=silent.jags, killautocorr=TRUE), interactive=interactive, max.time=max.time, inits=new.inits, plots = FALSE, ...)  # OLD WAY OF CALLING SUPERSEDED BY ARGUMENTS
 	output <- do.call(autorun.jags, arguments, quote=FALSE)
-	}, silent=FALSE)})
+	}, silent=FALSE)
 
 time.taken <- timestring(start.time, Sys.time(), units='s', show.units=FALSE)
 if(class(success)=="try-error" | success[1]=="Error"){
@@ -184,26 +183,24 @@ if(class(success)=="try-error" | success[1]=="Error"){
 	}else{
 		return(c(converged=NA, error.code=errorcode, samples=NA, samples.to.conv=NA, errorpadding, time.taken=time.taken))
 	}
-}else{
-	if(any(names(output)=="pilot.mcmc")){
-		errorcode = 2
-		output$mcmc <- output$pilot.mcmc
-		output$summary <- output$pilot.summary
-		converged <- FALSE
-	}else{
-		errorcode = 0
-		if(any(output$psrf$psrf[,1] > output$psrf$psrf.target)) errorcode <- 4
-		converged <- TRUE
-	}
-	samples <- output$req.samples
-	burnin <- output$req.burnin
-	trace <- output$trace
-	density <- output$density
-	samples.to.conv <- output$samples.to.conv
-	convergence <- output$psrf
 }
 
+samples <- output$sample
+samples.to.conv <- output$burnin
+
 psrf.target <- output$psrf$psrf.target
+convergence <- output$psrf
+if(any(convergence$psrf[,2]>psrf.target)){
+	errorcode = 2
+	converged <- FALSE
+}else{
+	errorcode = 0
+	converged <- TRUE
+}
+
+trace <- output$trace
+density <- output$density
+
 
 one <- output$mcmc[[1]]
 two <- output$mcmc[[2]]
@@ -216,7 +213,7 @@ if(raw.output==TRUE && likelihood==FALSE && unavailablelike==FALSE){
 		cat("Returning results\n")
 	}
 	cat("*PLEASE NOTE:  THIS SOFTWARE IS INTENDED FOR EDUCATIONAL PURPOSES ONLY AND SHOULD NOT BE RELIED UPON FOR REAL WORLD APPLICATIONS*\n\n")
-	return(list(mcmc=output$mcmc, end.state=output$end.state, samples=output$req.samples, samples.to.conv=output$samples.to.conv, summary=output$summary, psrf=output$psrf, autocorr=output$autocorr, time.taken=time.taken))
+	return(list(mcmc=output$mcmc, end.state=output$end.state, samples=output$sample, samples.to.conv=output$burnin, summary=output$summary, psrf=output$psrf, autocorr=output$autocorr, time.taken=time.taken))
 }
 
 if(FALSE){  # NOT USING BECAUSE AUTORUN DOESN'T RETURN PARTIALLY COMPLETED CHAINS.  error and crashed don't exist - errorcode does
@@ -335,20 +332,7 @@ if(model=="GP"){
 if(model=="WP"){
 	#  b is different in JAGS than R, but translation done in model to make priors easier:
 	# nb <- exp(-(log(b) * a)); where nb = jags 'b' and b = r 'b' (jags 'a' = r 'a')
-	
-	#The hardest part of this analysis turns out to be converting between R 
-	#and WinBUGS versions of the Weibull distribution: where R uses f (t) = 
-	#(a/b)(t/b)a−1 exp( 
-	#−(t/b) 
-	#a 
-	#), WinBUGS uses f (t) = ν λtν −1 exp( 
-	#−λt 
-	#ν 
-	#). Match- 
-	#ing up terms and doing some algebra shows that ν = a and λ = b−a or b = λ−1/a . 
-	#http://www.zoology.ufl.edu/bolker/emdbook/chap7A.pdf
-	
-	
+
 	a <- c(as.matrix(one[,1]), as.matrix(two[,1]))
 	b <- c(as.matrix(one[,2]), as.matrix(two[,2]))
 	mean <- b/a * gamma(1/a)
@@ -400,35 +384,35 @@ if(FALSE){ # TO USE quantile RATHER THAN HPDinterval
 	try(lvariance.an <- quantile(lvariance, probs = c(0.025, 0.5, 0.975), na.rm = TRUE), silent=TRUE)
 	try(dispersion.an <- quantile(dispersion, probs = c(0.025, 0.5, 0.975), na.rm = TRUE), silent=TRUE)
 }else{ # TO USE HPDinterval
-	try({hpd <- HPDinterval(as.mcmc(zi))
+	try({hpd <- HPDinterval(coda::as.mcmc(zi))
 		zi.an <- c(hpd[1], median(zi), hpd[2])
 		names(zi.an) <- c("l.95", "median", "u.95")}, silent=TRUE)
-	try({hpd <- HPDinterval(as.mcmc(scale))
+	try({hpd <- HPDinterval(coda::as.mcmc(scale))
 		scale.an <- c(hpd[1], median(scale), hpd[2])
 		names(scale.an) <- c("l.95", "median", "u.95")}, silent=TRUE)
-	try({hpd <- HPDinterval(as.mcmc(shape))
+	try({hpd <- HPDinterval(coda::as.mcmc(shape))
 		shape.an <- c(hpd[1], median(shape), hpd[2])
 		names(shape.an) <- c("l.95", "median", "u.95")}, silent=TRUE)
-	try({hpd <- HPDinterval(as.mcmc(mean))
+	try({hpd <- HPDinterval(coda::as.mcmc(mean))
 		mean.an <- c(hpd[1], median(mean), hpd[2])
 		names(mean.an) <- c("l.95", "median", "u.95")}, silent=TRUE)
-	try({hpd <- HPDinterval(as.mcmc(variance))
+	try({hpd <- HPDinterval(coda::as.mcmc(variance))
 		variance.an <- c(hpd[1], median(variance), hpd[2])
 		names(variance.an) <- c("l.95", "median", "u.95")}, silent=TRUE)
-	try({hpd <- HPDinterval(as.mcmc(lmean))
+	try({hpd <- HPDinterval(coda::as.mcmc(lmean))
 		lmean.an <- c(hpd[1], median(lmean), hpd[2])
 		names(lmean.an) <- c("l.95", "median", "u.95")}, silent=TRUE)
-	try({hpd <- HPDinterval(as.mcmc(lvariance))
+	try({hpd <- HPDinterval(coda::as.mcmc(lvariance))
 		lvariance.an <- c(hpd[1], median(lvariance), hpd[2])
 		names(lvariance.an) <- c("l.95", "median", "u.95")}, silent=TRUE)
-	try({hpd <- HPDinterval(as.mcmc(dispersion))
+	try({hpd <- HPDinterval(coda::as.mcmc(dispersion))
 		dispersion.an <- c(hpd[1], median(dispersion), hpd[2])
 		names(dispersion.an) <- c("l.95", "median", "u.95")}, silent=TRUE)
 }
 
 autocorrdis <- NA
 try({
-	autocorrdis <- autocorr.diag(as.mcmc(dispersion))[2,1]
+	autocorrdis <- coda::autocorr.diag(coda::as.mcmc(dispersion))[2,1]
 	names(autocorrdis) <- NULL
 	}, silent=TRUE)
 
@@ -499,7 +483,7 @@ if(likelihood==TRUE){
 	if(any(is.na(likeli[[1]]))){
 		likeli.an <- c(l.95=NA, median=NA, u.95=NA, MAX.OBS=NA)
 	}else{
-		hpd <- HPDinterval(as.mcmc(likeli[[1]]))
+		hpd <- HPDinterval(coda::as.mcmc(likeli[[1]]))
 		likeli.an <- c(l.95=hpd[1], median=median(likeli[[1]]), u.95=hpd[2], MAX.OBS=max(likeli[[1]]))
 	}
 	results <- c(results, likelihood=likeli.an[1], likelihood=likeli.an[2], likelihood=likeli.an[3], likelihood=likeli.an[4])
@@ -552,7 +536,7 @@ if(raw.output==TRUE & (likelihood==TRUE | unavailablelike==TRUE)){
 	}
 	#}
 	
-	mcmc <- mcmc.list(as.mcmc(one), as.mcmc(two))
+	mcmc <- coda::mcmc.list(coda::as.mcmc(one), coda::as.mcmc(two))
 
 #	mcmc[[1]][,"deviance"] <- mcmc[[1]][,"deviance"]/-2
 #	mcmc[[2]][,"deviance"] <- mcmc[[2]][,"deviance"]/-2
@@ -566,7 +550,7 @@ if(raw.output==TRUE & (likelihood==TRUE | unavailablelike==TRUE)){
 	}
 	cat("*PLEASE NOTE:  THIS SOFTWARE IS INTENDED FOR EDUCATIONAL PURPOSES ONLY AND SHOULD NOT BE RELIED UPON FOR REAL WORLD APPLICATIONS*\n\n")
 	
-	return(list(mcmc=mcmc, end.state=output$end.state, samples=output$req.samples, samples.to.conv=output$samples.to.conv, summary=output$summary, psrf=output$psrf, autocorr=output$autocorr, trace=trace, density=density, time.taken=time.taken))
+	return(list(mcmc=mcmc, end.state=output$end.state, samples=output$sample, samples.to.conv=output$burnin, summary=output$summary, psrf=output$psrf, autocorr=output$autocorr, trace=trace, density=density, time.taken=time.taken))
 }
 
 largeod <- assess.variance(model=list(model=model, alt.prior=alt.prior, l.95 = dispersion.an[1], u.95 = dispersion.an[3]))
@@ -590,3 +574,7 @@ names(results) <- names
 return(results)
 
 }	
+
+fec.analysis <- bayescount.single
+FEC.analysis <- bayescount.single
+count.analysis <- bayescount.single

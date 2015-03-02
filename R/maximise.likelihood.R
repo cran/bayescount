@@ -1,5 +1,7 @@
 maximise.likelihood <- function(data=stop("Data must be specified"), model=stop("Please specify a distribution"), mean=NA, variance=NA, zi=NA, shape=NA, scale=NA, silent=FALSE){
 	
+	warning('The maximise.likelihood function is deprecated and will be removed from version 1.0 of bayescount (expected to be released in mid 2015)')
+	
 	model <- toupper(model)
 	testdata <- data
 	
@@ -55,13 +57,13 @@ maximise.likelihood <- function(data=stop("Data must be specified"), model=stop(
 		if(is.na(mean)) mean <- mean(data)
 		
 		if(silent==TRUE){
-			f1 <- function(mean) return(max(-Inf, likelihood(model=model, data=data, mean=mean, silent=TRUE), na.rm=TRUE))
+			f1 <- function(mean) return(max(-Inf, likelihood(model=model, data=data, mean=mean, silent=as.character(TRUE)), na.rm=TRUE))
 		}else{
 			cat("\n\tmean\n", eol, "\t", signif(mean+(mean/100000), 4), eol, sep="")
 			f1 <- function(mean){
 				cat(clearline, "\t", signif(mean+(mean/100000), 4), eol, sep="")
 				flush.console()
-				return(max(-Inf, likelihood(model=model, data=data, mean=mean, silent=TRUE), na.rm=TRUE))
+				return(max(-Inf, likelihood(model=model, data=data, mean=mean, silent=as.character(TRUE)), na.rm=TRUE))
 			}
 		}
 		maxim <- optimise(f1, mean, lower=0, upper=max(data)*10, maximum=TRUE)
@@ -78,7 +80,7 @@ maximise.likelihood <- function(data=stop("Data must be specified"), model=stop(
 		if(silent==TRUE){
 			f2 <- function(pars=c(NA, NA)){
 				if(pars[2] < 0 | pars[2] > 100 | pars[1] < 0) return(-Inf)
-				return(max(-Inf, likelihood(model=model, data=data, mean=pars[1], zi=pars[2], silent=TRUE), na.rm=TRUE))
+				return(max(-Inf, likelihood(model=model, data=data, mean=pars[1], zi=pars[2], silent=as.character(TRUE)), na.rm=TRUE))
 			}
 		}else{
 			cat("\n\tmean\t\tzi\n", eol, "\t", signif(mean+(mean/100000), 4), "\t\t", signif(zi+(zi/100000), 4), eol, sep="")
@@ -86,7 +88,7 @@ maximise.likelihood <- function(data=stop("Data must be specified"), model=stop(
 				if(pars[2] < 0 | pars[2] > 100 | pars[1] < 0) return(-Inf)
 				cat(clearline, "\t", signif(pars[1]+(pars[1]/100000), 4), "\t\t", signif(pars[2]+(pars[2]/100000), 4), eol, sep="")
 				flush.console()
-				return(max(-Inf, likelihood(model=model, data=data, mean=pars[1], zi=pars[2], silent=TRUE), na.rm=TRUE))
+				return(max(-Inf, likelihood(model=model, data=data, mean=pars[1], zi=pars[2], silent=as.character(TRUE)), na.rm=TRUE))
 			}
 		}
 		maxim <- optim(c(mean, zi), f2, control=list(fnscale=-1))
@@ -100,7 +102,7 @@ maximise.likelihood <- function(data=stop("Data must be specified"), model=stop(
 		if(silent==TRUE){
 			f3 <- function(pars=c(NA, NA)){
 				if(pars[2] <= 0 | pars[1] <= 0) return(-Inf)
-				return(max(-Inf, likelihood(model=model, data=data, shape=pars[1], scale=pars[2], silent=TRUE), na.rm=TRUE))
+				return(max(-Inf, likelihood(model=model, data=data, shape=pars[1], scale=pars[2], silent=as.character(TRUE)), na.rm=TRUE))
 			}
 		}else{
 			cat("\n\tshape\t\tscale\n", eol, "\t", signif(shape, 4), "\t\t", signif(scale, 4), eol, sep="")
@@ -108,7 +110,7 @@ maximise.likelihood <- function(data=stop("Data must be specified"), model=stop(
 				if(pars[2] <= 0 | pars[1] <= 0) return(-Inf)
 				cat(clearline, "\t", signif(pars[1], 4), "\t\t", signif(pars[2], 4), eol, sep="")
 				flush.console()
-				return(max(-Inf, likelihood(model=model, data=data, shape=pars[1], scale=pars[2], silent=TRUE), na.rm=TRUE))
+				return(max(-Inf, likelihood(model=model, data=data, shape=pars[1], scale=pars[2], silent=as.character(TRUE)), na.rm=TRUE))
 			}
 		}
 		maxim <- optim(c(shape, scale), f3, control=list(fnscale=-1))
@@ -128,7 +130,7 @@ maximise.likelihood <- function(data=stop("Data must be specified"), model=stop(
 		if(silent==TRUE){
 			f4 <- function(pars=c(NA, NA, NA)){
 				if(pars[2] <= 0 | pars[1] <= 0 | pars[3] < 0 | pars[3] > 100) return(-Inf)
-				return(max(-Inf, likelihood(model=model, data=data, shape=pars[1], scale=pars[2], zi=pars[3], silent=TRUE), na.rm=TRUE))
+				return(max(-Inf, likelihood(model=model, data=data, shape=pars[1], scale=pars[2], zi=pars[3], silent=as.character(TRUE)), na.rm=TRUE))
 			}
 		}else{
 			cat("\n\tshape\t\tscale\t\tzi\n", eol, "\t", signif(shape, 4), "\t\t", signif(scale, 4), "\t\t", signif(zi, 4), eol, sep="")
@@ -136,7 +138,7 @@ maximise.likelihood <- function(data=stop("Data must be specified"), model=stop(
 				if(pars[2] <= 0 | pars[1] <= 0 | pars[3] < 0 | pars[3] > 100) return(-Inf)
 				cat(clearline, "\t", signif(pars[1], 4), "\t\t", signif(pars[2], 4), "\t\t", signif(pars[3], 4), eol, sep="")
 				flush.console()
-				return(max(-Inf, likelihood(model=model, data=data, shape=pars[1], scale=pars[2], zi=pars[3], silent=TRUE), na.rm=TRUE))
+				return(max(-Inf, likelihood(model=model, data=data, shape=pars[1], scale=pars[2], zi=pars[3], silent=as.character(TRUE)), na.rm=TRUE))
 			}
 		}
 		maxim <- optim(c(shape, scale, zi), f4, control=list(fnscale=-1))
@@ -150,7 +152,7 @@ maximise.likelihood <- function(data=stop("Data must be specified"), model=stop(
 		if(silent==TRUE){
 			f5 <- function(pars=c(NA, NA)){
 				if(pars[2] <= 0 | pars[1] <= 0) return(-Inf)
-				return(max(-Inf, likelihood(model=model, data=data, shape=pars[1], scale=pars[2], silent=TRUE), na.rm=TRUE))
+				return(max(-Inf, likelihood(model=model, data=data, shape=pars[1], scale=pars[2], silent=as.character(TRUE)), na.rm=TRUE))
 			}
 		}else{
 			cat("\n\tshape\t\tscale\n", eol, "\t", signif(shape, 4), "\t\t", signif(scale, 4), eol, sep="")
@@ -158,7 +160,7 @@ maximise.likelihood <- function(data=stop("Data must be specified"), model=stop(
 				if(pars[2] <= 0 | pars[1] <= 0) return(-Inf)
 				cat(clearline, "\t", signif(pars[1], 4), "\t\t", signif(pars[2], 4), eol, sep="")
 				flush.console()
-				return(max(-Inf, likelihood(model=model, data=data, shape=pars[1], scale=pars[2], silent=TRUE), na.rm=TRUE))
+				return(max(-Inf, likelihood(model=model, data=data, shape=pars[1], scale=pars[2], silent=as.character(TRUE)), na.rm=TRUE))
 			}
 		}
 		maxim <- optim(c(shape, scale), f5, control=list(fnscale=-1))
@@ -173,7 +175,7 @@ maximise.likelihood <- function(data=stop("Data must be specified"), model=stop(
 		if(silent==TRUE){
 			f6 <- function(pars=c(NA, NA, NA)){
 				if(pars[2] <= 0 | pars[1] <= 0 | pars[3] < 0 | pars[3] > 100) return(-Inf)
-				return(max(-Inf, likelihood(model=model, data=data, shape=pars[1], scale=pars[2], zi=pars[3], silent=TRUE), na.rm=TRUE))
+				return(max(-Inf, likelihood(model=model, data=data, shape=pars[1], scale=pars[2], zi=pars[3], silent=as.character(TRUE)), na.rm=TRUE))
 			}
 		}else{
 			cat("\n\tshape\t\tscale\t\tzi\n", eol, "\t", signif(shape, 4), "\t\t", signif(scale, 4), "\t\t", signif(zi, 4), eol, sep="")
@@ -181,7 +183,7 @@ maximise.likelihood <- function(data=stop("Data must be specified"), model=stop(
 				if(pars[2] <= 0 | pars[1] <= 0 | pars[3] < 0 | pars[3] > 100) return(-Inf)
 				cat(clearline, "\t", signif(pars[1], 4), "\t\t", signif(pars[2], 4), "\t\t", signif(pars[3], 4), eol, sep="")
 				flush.console()
-				return(max(-Inf, likelihood(model=model, data=data, shape=pars[1], scale=pars[2], zi=pars[3], silent=TRUE), na.rm=TRUE))
+				return(max(-Inf, likelihood(model=model, data=data, shape=pars[1], scale=pars[2], zi=pars[3], silent=as.character(TRUE)), na.rm=TRUE))
 			}
 		}
 		maxim <- optim(c(shape, scale, zi), f6, control=list(fnscale=-1))
@@ -195,7 +197,7 @@ maximise.likelihood <- function(data=stop("Data must be specified"), model=stop(
 		if(silent==TRUE){
 			f7 <- function(pars=c(NA, NA)){
 				if(pars[2] < 0 | pars[1] < 0) return(-Inf)
-				return(max(-Inf, likelihood(model=model, data=data, mean=pars[1], variance=pars[2], silent=TRUE), na.rm=TRUE))
+				return(max(-Inf, likelihood(model=model, data=data, mean=pars[1], variance=pars[2], silent=as.character(TRUE)), na.rm=TRUE))
 			}
 		}else{
 			cat("\n\tmean\t\tvariance\n", eol, "\t", signif(mean, 4), "\t\t", signif(variance, 4), eol, sep="")
@@ -203,7 +205,7 @@ maximise.likelihood <- function(data=stop("Data must be specified"), model=stop(
 				if(pars[2] <= 0 | pars[1] < 0) return(-Inf)
 				cat(clearline, "\t", signif(pars[1], 4), "\t\t", signif(pars[2], 4), eol, sep="")
 				flush.console()
-				return(max(-Inf, likelihood(model=model, data=data, mean=pars[1], variance=pars[2], silent=TRUE), na.rm=TRUE))
+				return(max(-Inf, likelihood(model=model, data=data, mean=pars[1], variance=pars[2], silent=as.character(TRUE)), na.rm=TRUE))
 			}
 		}
 		maxim <- optim(c(mean, variance), f7, control=list(fnscale=-1))
@@ -222,7 +224,7 @@ maximise.likelihood <- function(data=stop("Data must be specified"), model=stop(
 		if(silent==TRUE){
 			f8 <- function(pars=c(NA, NA, NA)){
 				if(pars[2] < 0 | pars[1] < 0 | pars[3] < 0 | pars[3] > 100) return(-Inf)
-				return(max(-Inf, likelihood(model=model, data=data, mean=pars[1], variance=pars[2], zi=pars[3], silent=TRUE), na.rm=TRUE))
+				return(max(-Inf, likelihood(model=model, data=data, mean=pars[1], variance=pars[2], zi=pars[3], silent=as.character(TRUE)), na.rm=TRUE))
 			}
 		}else{
 			cat("\n\tmean\t\tvariance\t\tzi\n", eol, "\t", signif(mean, 4), "\t\t", signif(variance, 4), "\t\t", signif(zi, 4), eol, sep="")
@@ -230,7 +232,7 @@ maximise.likelihood <- function(data=stop("Data must be specified"), model=stop(
 				if(pars[2] < 0 | pars[1] < 0 | pars[3] < 0 | pars[3] > 100) return(-Inf)
 				cat(clearline, "\t", signif(pars[1], 4), "\t\t", signif(pars[2], 4), "\t\t", signif(pars[3], 4), eol, sep="")
 				flush.console()
-				return(max(-Inf, likelihood(model=model, data=data, mean=pars[1], variance=pars[2], zi=pars[3], silent=TRUE), na.rm=TRUE))
+				return(max(-Inf, likelihood(model=model, data=data, mean=pars[1], variance=pars[2], zi=pars[3], silent=as.character(TRUE)), na.rm=TRUE))
 			}
 		}
 		maxim <- optim(c(mean, variance, zi), f8, control=list(fnscale=-1))

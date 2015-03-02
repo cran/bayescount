@@ -1,9 +1,13 @@
-run.model <- function(data=stop("No data supplied"), model=stop("No model specified"), call.jags = TRUE, alt.prior = FALSE, monitor.lambda=FALSE, monitor.deviance=FALSE, ...){
+run.model <- function(data=stop("No data supplied"), model=stop("No model specified"), call.jags = FALSE, alt.prior = FALSE, monitor.lambda=FALSE, monitor.deviance=FALSE, ...){
 	
 ###  Currently only the IP model requires gamma monitored for the likelihood bit - others are integrated
 
 if(monitor.lambda==TRUE && model!="IP"){
 	monitor.lambda <- FALSE
+}
+
+if(call.jags){
+	warning('The call.jags argument is deprecated and will be removed from version 1 of the bayescount package')
 }
 
 updates <- sample
@@ -894,10 +898,14 @@ if(monitor.deviance) monitors <- c(monitors, "deviance")
 
 datastring <- dump.format(list(N=N, R=R, Count=counts))
 
-if(call.jags==FALSE){
-	return(list(model=modelstring, data=datastring, inits=initstring, monitor=monitors))
+if(!call.jags){
+	return(run.jags(model=modelstring, monitor=monitors, data=datastring, n.chains=2, inits=initstring, burnin=0, adapt=0, sample=0, ...))
 }else{
-	return(run.jags(data=datastring, model=modelstring, n.chains=2, inits=initstring, monitor=monitors, ...))
+	return(run.jags(model=modelstring, monitor=monitors, data=datastring, n.chains=2, inits=initstring, ...))
 }
 
 }
+
+count.model <- run.model
+fec.model <- run.model
+FEC.model <- run.model

@@ -1,14 +1,15 @@
-\name{fec.power.limits}
+\name{count.precision}
+\alias{count.precision}
+\alias{fec.precision}
+\alias{FEC.precision}
 \alias{fec.power.limits}
 \alias{FEC.power.limits}
-\title{FEC Power Analysis Calculations (find tolerance)}
+\title{Count Data Predicted Precision Calculations}
 \description{
-Finds the appropriate tolerance with which to consider the observed mean for a faecal egg count study with the given combination of power and other parameters.  The power is calculated using the negative binomial distribution when considering the true mean of a single individual, or using Monte Carlo integration for more than one animal.  Confidence intervals for the true power are produced for the latter.  Tolerance can be defined as either a lower limit only if upper.limit is defined, as an upper limit only if lower.limit is defined, or as both (equidistant) limits if neither are defined.
-
-*THIS SOFTWARE IS INTENDED FOR EDUCATIONAL PURPOSES ONLY AND SHOULD NOT BE RELIED UPON FOR REAL WORLD APPLICATIONS*
+Finds the appropriate tolerance with which to consider the observed mean for a faecal egg count study with the given combination of power and other parameters.  The precision is calculated using the negative binomial distribution when considering the true mean of a single individual, or using Monte Carlo integration for more than one animal.  Confidence intervals for the true power are produced for the latter.  Tolerance can be defined as either a lower limit only if upper.limit is defined, as an upper limit only if lower.limit is defined, or as both (equidistant) limits if neither are defined.
 }
 \usage{
-fec.power.limits(meanepg=200, g.faeces=3, sensitivity=1/25, 
+count.precision(meanepg=200, g.faeces=3, sensitivity=1/25, 
    replicates=1, animals=10, coeffvarrep=0.4, coeffvarind=0.3, 
    coeffvargroup=0.7, true.sample=FALSE, lower.limit=NA, 
    upper.limit=NA, iterations=100000, power = 0.95, 
@@ -35,7 +36,7 @@ fec.power.limits(meanepg=200, g.faeces=3, sensitivity=1/25,
 \value{Returns a list containing the elements 'limits', which is the calculated lower and upper tolerance level which provides the required power, and 'power' which specifies the median estimate and confidence intervals for the true power when using Monte Carlo integration, or the absolute value (replicated 3 times for consistency) if using the negative binomial approximation method.  The true power returned may not exactly match the required power input due to the integer nature of FEC data.
 }
 \seealso{
-   \code{\link{fec.power}}, \code{\link{fecrt.power.limits}}, \code{\link{fecrt}}, \code{\link{bayescount}}
+   \code{\link{count.power}}, \code{\link{count.analysis}}
 }
 
 \keyword{models}

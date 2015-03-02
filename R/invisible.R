@@ -10,14 +10,14 @@ print.fecrt.results <- function(x=list(), filename=FALSE, ...){
 	
 	cat(paste("Results of the feacal egg count reduction test analysis for '", x$name, "' with ", N, " animals:\n\n", sep=""), file=file,append=TRUE)
 	
-	if(all(is.na(x$results.mcmc))) cat("The Bayesian MCMC analysis method was not used\n\n", file=file,append=TRUE) else cat(paste("The Bayesian MCMC method concluded that these data have a ", round(x$prob.mcmc, digits), "% probability of coming from a resistant herd, which is defined as '", x$results.mcmc, "'.  The ", x$confidence, "% credible interval and median result for the mean efficacy according to the Bayesian method is:\nl", x$confidence, ": ", round(x$quant.mcmc[1], digits), "%    median: ", round(x$quant.mcmc[2], digits), "%    u", x$confidence, ": ", round(x$quant.mcmc[3], digits), "%\n\n", sep=""), file=file,append=TRUE)
+	if(all(is.na(x$results.mcmc))) cat("The Bayesian MCMC analysis method was not used\n\n", file=file,append=TRUE) else cat(paste("The Bayesian MCMC method concluded that these data have a ", round(x$prob.mcmc, digits), "% probability of coming from a resistant herd, which is defined as '", x$results.mcmc, "'.  The ", x$confidence*100, "% credible interval and median result for the mean efficacy according to the Bayesian method is:\nl", x$confidence*100, ": ", round(x$quant.mcmc[1], digits), "%    median: ", round(x$quant.mcmc[2], digits), "%    u", x$confidence*100, ": ", round(x$quant.mcmc[3], digits), "%\n\n", sep=""), file=file,append=TRUE)
 	
 	if(identical(NA, x$results.boot)){
 		cat("Results from bootstrapping and the WAAVP method were not available\n\n", file=file,append=TRUE)
 		
 	}else{
-		cat(paste("The bootstrap method concluded that these data have a ", round(x$prob.boot,digits), "% probability of coming from a resistant herd, which is defined as '", x$results.boot, "'.  The ", x$confidence, "% confidence interval and median result for the mean efficacy according to the bootstrap method is:\nl", x$confidence, ": ", round(x$quant.boot[1], digits), "%    median: ", round(x$quant.boot[2],digits), "%    u", x$confidence, ": ", round(x$quant.boot[3],digits), "%\n\n", sep=""), file=file,append=TRUE)
-		if(x$confidence!=95){
+		cat(paste("The bootstrap method concluded that these data have a ", round(x$prob.boot,digits), "% probability of coming from a resistant herd, which is defined as '", x$results.boot, "'.  The ", x$confidence*100, "% confidence interval and median result for the mean efficacy according to the bootstrap method is:\nl", x$confidence*100, ": ", round(x$quant.boot[1], digits), "%    median: ", round(x$quant.boot[2],digits), "%    u", x$confidence*100, ": ", round(x$quant.boot[3],digits), "%\n\n", sep=""), file=file,append=TRUE)
+		if(x$confidence!=0.95){
 			cat("Results from the WAAVP method are not available unless confidence is 95%\n\n")
 		}else{
 			cat(paste("The WAAVP method defined the data as '", x$results.boot, "'.\nThe 95% confidence interval and median result for the mean efficacy according to the WAAVP method is:\nl95: ", round(x$quant.waavp[1],digits), "%    median: ", round(x$quant.waavp[2],digits), "%    u95: ", round(x$quant.waavp[3],digits), "%\n\n", sep=""), file=file,append=TRUE)
@@ -26,9 +26,7 @@ print.fecrt.results <- function(x=list(), filename=FALSE, ...){
 	
 	if(all(!is.na(x$results.mcmc))){
 	cat("\nThe following additional results were obtained using the Bayesian MCMC method:\n\n", file=file,append=TRUE)
-	cat(paste("The median and ", x$confidence, "% credible intervals for the true mean egg count before treatment:\nl", x$confidence, ": ", round(x$meanquant[1],digits+1), "    median: ", round(x$meanquant[2],digits+1), "    u", x$confidence, ": ", round(x$meanquant[3],digits+1), "\n\n", sep=""), file=file,append=TRUE)
-	cat(paste("The median and ", x$confidence, "% credible intervals for the change in shape parameter (<1 denotes an increase in variability and >1 a decrease in variability):\nl", x$confidence, ": ", round(x$dshapequant[1],digits+1), "    median: ", round(x$dshapequant[2],digits+1), "    u", x$confidence, ": ", round(x$dshapequant[3],digits+1), "\n\n", sep=""), file=file,append=TRUE)
-	if(all(is.na(x$ziquant))) cat("The zero-inflated model was not used\n\n", file=file, append=TRUE) else cat(paste("The median and ", x$confidence, "% credible intervals for the zero-inflation:\nl", x$confidence, ": ", round(x$ziquant[1],digits+1), "%    median: ", round(x$ziquant[2],digits+1), "%    u", x$confidence, ": ", round(x$ziquant[3],digits+1), "%\n\n", sep=""), file=file,append=TRUE)
+	cat(paste("The median and ", x$confidence*100, "% credible intervals for the true mean egg count before treatment:\nl", x$confidence*100, ": ", round(x$meanquant[1],digits+1), "    median: ", round(x$meanquant[2],digits+1), "    u", x$confidence*100, ": ", round(x$meanquant[3],digits+1), "\n\n", sep=""), file=file,append=TRUE)
 	#if(!all(is.na(x$indredquant))){
 	#	cat(paste("Individual animal probabilities of 'efficacy < ", x$efficacy, "%', along with median and ", x$confidence, "% credible intervals for mean egg count reduction:\n\n", sep=""), file=file,append=TRUE)
 	#for(i in 1:N){
@@ -40,7 +38,6 @@ print.fecrt.results <- function(x=list(), filename=FALSE, ...){
 	#}
 	
 	if(!x$converged) cat("*WARNING* The chains did not achieve convergence during the simulation, you should interpret the Bayesian MCMC results with extreme caution\n\n")
-	cat(paste("Note:  The prior for efficacy with the Bayesian MCMC method was ", if(!x$restrict.efficacy) "not ", "restricted to values of greater than 0%\n\n", sep=""), file=file,append=TRUE)
 	
 }
 

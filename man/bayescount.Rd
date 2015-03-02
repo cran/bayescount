@@ -6,7 +6,8 @@
 
 Note: The GUI interface for R in Windows may not continually refresh the output window, making it difficult to track the progress of the simulation (if silent.jags is FALSE).  To avoid this, you can run the function from the terminal version of R (located in the Program Files/R/bin/ folder).  
 
-*THIS SOFTWARE IS INTENDED FOR EDUCATIONAL PURPOSES ONLY AND SHOULD NOT BE RELIED UPON FOR REAL WORLD APPLICATIONS*  
+   * NOTE: THIS FUNCTION IS DEPRECATED AND WILL BE REMOVED FROM BAYESCOUNT VERSION 1 - SEE \code{\link{count.model}} FOR AN ALTERNATIVE *
+
 }
 \usage{
 bayescount(name = NA, data = NA, setnames = NA,
@@ -48,30 +49,14 @@ The results files consist of a table (or matrix) with the following results for 
 }
 
 \seealso{
-   \code{\link[runjags]{autorun.jags}}, \code{\link{bayescount.single}}, \code{\link{likelihood}}, and \code{\link{fec.power}} for power analysis methods for FEC.
+   \code{\link[runjags]{autorun.jags}}, \code{\link{count.analysis}}, and \code{\link{fec.power}} for power analysis methods for FEC.
 }
 
 \examples{
 
 # run the function with all values as default, and 'name' and 'data' 
 # (from a local .csv file) to be input by the user when prompted:
-\dontrun{
-bayescount()
-}
-
-# analyse data using zero-inflated gamma Poisson and zero-inflated 
-# lognormal Poisson models in 5 text .csv files named 
-# 'mydata/data.*numer*.csv' with column labels, and calculating the 
-# likelihoods, and limiting each dataset to 30 minutes to achieve 
-# convergence:
-\dontrun{
-for (i in 1:5){
-	bayescount(name=paste("Data ", i, sep=""), 
-	data=paste("mydata/data.", i, ".csv", sep=""), model=c("ZIGP", "ZILP"), 
-	setnames=TRUE, test = FALSE, likelihood = TRUE, silent.jags=TRUE, 
-	max.time="30mins")
-}
-}
+# bayescount()
 
 # analyse local data (2 datasets with 20 animals each with 10 repeat 
 # samples) using a zero-inflated lognormal Poisson model:
@@ -87,6 +72,7 @@ for(i in 1:20){
 # Missing data is permissible but means the likelihood cannot be 
 # calculated - a warning will be printed:
 data[sample(1:(20*10*2), 10)] <- NA
+try(unlink("analysis.ZILP.csv"), silent=TRUE)
 # Run the analysis:
 bayescount(name="analysis", data=data, model = "ZILP", 
 setnames=c("Simulated group A", "Simulated group B"), likelihood=TRUE)

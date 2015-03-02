@@ -69,7 +69,10 @@ double samplemeans[animals[0]];
 int sumcount;
 int set,a, skipset;
 
-double lci, uci, meancount;
+double meancount;
+double lci=0.0;
+double uci=1.1;
+
 
 int decimals = precision[0];
 
@@ -171,9 +174,11 @@ shapegp = 1/(coeffvargroup[0]*coeffvargroup[0]);
 
 double indmeans;//[animals[0]];
 double replicatemeans;//[animals[0]];
+register unsigned int set, a;
+double meancount, sumcount;
 
-register unsigned int set, a, skipset;
-double lci, uci, meancount, sumcount;
+double lci=0.0;
+double uci=1.1;
 
 register unsigned int decimals = precision[0];
 
@@ -242,8 +247,8 @@ shapegp = 1/(coeffvargroup[0]*coeffvargroup[0]);
 double indmeans;//[animals[0]];
 double replicatemeans;//[animals[0]];
 
-register unsigned int set, a, skipset;
-double lci, uci, meancount, sumcount;
+register unsigned int set, a;
+double meancount, sumcount;
 
 if(print[0]){
 	Rprintf("< Running simulation >\n0%% complete\n");
@@ -296,8 +301,11 @@ shapegp = 1/(coeffvargroup[0]*coeffvargroup[0]);
 double indmeans[animals[0]];
 double replicatemeans;//[animals[0]];
 
-register unsigned int set, a, skipset, done;
-double lci, uci, meancount, sumcount, samplesum, adjust;
+register unsigned int set, a, done;
+double meancount, sumcount, samplesum, adjust;
+
+double lci=0.0;
+double uci=1.1;
 
 register unsigned int decimals = precision[0];
 
@@ -391,8 +399,8 @@ shapegp = 1/(coeffvargroup[0]*coeffvargroup[0]);
 double indmeans[animals[0]];
 double replicatemeans;//[animals[0]];
 
-register unsigned int set, a, skipset;
-double lci, uci, meancount, sumcount, done, samplesum, adjust;
+register unsigned int set, a;
+double meancount, sumcount, done, samplesum, adjust;
 
 if(print[0]){
 	Rprintf("< Running simulation >\n0%% complete\n");
@@ -473,8 +481,11 @@ postshapegp = 1/(postcoeffvargroup[0]*postcoeffvargroup[0]);
 double indmeans;//[animals[0]];
 double replicatemeans;//[animals[0]];
 
-register unsigned int set, a, skipset;
-double lci, uci, meanred, presumcount, postsumcount;
+register unsigned int set, a;
+double meanred, presumcount, postsumcount;
+
+double lci=0.0;
+double uci=1.1;
 
 register unsigned int decimals = precision[0];
 
@@ -561,8 +572,11 @@ double preindmeans[animals[0]];
 double postindmeans[animals[0]];
 double replicatemeans;//[animals[0]];
 
-register unsigned int set, a, skipset, done;
-double lci, uci, meanred, presumcount, postsumcount, samplesum, adjust;
+register unsigned int set, a, done;
+double meanred, presumcount, postsumcount, samplesum, adjust;
+
+double lci=0.0;
+double uci=1.1;
 
 register unsigned int decimals = precision[0];
 
@@ -698,8 +712,8 @@ postshapegp = 1/(postcoeffvargroup[0]*postcoeffvargroup[0]);
 double indmeans;//[animals[0]];
 double replicatemeans;//[animals[0]];
 
-register unsigned int set, a, skipset;
-double lci, uci, meanred, presumcount, postsumcount;
+register unsigned int set, a;
+double meanred, presumcount, postsumcount;
 
 if(print[0]){
 	Rprintf("< Running simulation >\n0%% complete\n");
@@ -767,8 +781,8 @@ double preindmeans[animals[0]];
 double postindmeans[animals[0]];
 double replicatemeans;//[animals[0]];
 
-register unsigned int set, a, skipset, done;
-double lci, uci, meanred, presumcount, postsumcount, samplesum, adjust;
+register unsigned int set, a, done;
+double meanred, presumcount, postsumcount, samplesum, adjust;
 
 if(print[0]){
 	Rprintf("< Running simulation >\n0%% complete\n");

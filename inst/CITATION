@@ -1,8 +1,7 @@
 citHeader("To cite package 'bayescount' in publications use:")
 
-desc <- packageDescription("bayescount")
-year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", desc$Date)
-vers <- paste("R package version", desc$Version)
+year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", meta$Date)
+vers <- paste("R package version", meta$Version)
 
 citEntry(entry="Manual",
          title = "bayescount: Analysis of faecal egg count distributions, faecal egg count reduction tests, and prospective power calculations using computationally intensive statistical techniques",

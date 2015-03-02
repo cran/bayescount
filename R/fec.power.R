@@ -291,4 +291,8 @@ return(output)
 }
 
 FEC.power.limits <- fec.power.limits
+FEC.precision <- fec.power.limits
+fec.precision <- fec.power.limits
+count.precision <- fec.precision
 FEC.power <- fec.power
+count.power <- fec.power
