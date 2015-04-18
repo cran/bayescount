@@ -1,5 +1,5 @@
 8197a9fcd6da4b09bfe2ebf608bf167f *CHANGELOG
-6a6f2db7672eb888f8c849310fddde16 *DESCRIPTION
+61eb62fb8cc7f5e14a0d59f0040d4251 *DESCRIPTION
 559b4831eccd7ec58cd0370387d3cb60 *NAMESPACE
 b5a9ecae5fe8961a4133d943f6bf75c1 *R/bayescount.R
 3bf491936188eff849dc6aae2b6a108f *R/bayescount.single.R
@@ -12,7 +12,6 @@ c1cef8c14b4a1b8c7e9ef19f43aa3034 *R/likelihood.R
 9df14d24234edde019272e48733d595f *R/maximise.likelihood.R
 d761ecd7d765526c6bb75c3290cdaf80 *R/normal.lnormal.params.R
 681bad365e6905ac043930d2aa9d7b56 *R/run.model.R
-8cdf64b34c412078276d88485cd6dcdf *inst/CITATION
 345a7517bbdc2517c447a4d177af9ebe *man/bayescount.Rd
 923f67a78ed282d399c5462cf99d4d0d *man/bayescount.single.Rd
 aa71a5008eb32bba23cf8edf03a29c81 *man/fec.power.Rd
