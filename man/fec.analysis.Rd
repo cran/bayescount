@@ -1,12 +1,12 @@
-\name{count.analysis} \alias{count.analysis} \alias{fec.analysis}
+\name{fec.analysis} \alias{count.analysis} \alias{fec.analysis}
 \alias{FEC.analysis} \alias{bayescount.single} \title{Analyse Count data
 using MCMC} \description{ Apply a Bayesian [zero-inflated] gamma /
 Weibull / lognormal / independant / simple Poisson model to count data
 to return possible values for mean count, coefficient of variation, and
-zero-inflation, as either summary statistics or mcmc objects. 
+zero-inflation, as either summary statistics or mcmc objects.
 Convergence is assessed for each dataset by calculating the Gelman-Rubin
-statistic for each parameter, see \code{\link[runjags]{autorun.jags}}. 
-Optionally, the log likelihood for the model fit is also calculated. 
+statistic for each parameter, see \code{\link[runjags]{autorun.jags}}.
+Optionally, the log likelihood for the model fit is also calculated.
 The time taken to complete each analysis (not including calculation of
 the likelihood) is also recorded.  The lower level functions in the
 runjags package are used for calling JAGS.
@@ -20,7 +20,7 @@ Files/R/bin/ folder).
 }
 \usage{
 
-count.analysis(data = stop("Data must be specified"), model="ZILP",
+fec.analysis(data = stop("Data must be specified"), model="ZILP",
 alt.prior = FALSE, adjust.zi.mean = FALSE, raw.output = FALSE,
 likelihood=FALSE, ...)
 }
@@ -29,7 +29,7 @@ can either be specified as a numeric vector of single counts for each
 sample, or as a matrix of repeated counts (columns) for each sample
 (rows).  Repeated counts are modelled as part of the same Poisson
 process.  Data can also be specified as a (ragged) list of repeated
-counts, with each element of the list representing a seperate sample. 
+counts, with each element of the list representing a seperate sample.
 Finally, data can be specified as a list containing the elements
 'totals' representing the sum of the repeated McMasters counts, and
 'repeats' representing the number of McMasters counts performed per
@@ -51,7 +51,7 @@ the standard or the alternative prior distribution for variance?
 (logical)  Can also be a character value of a user-specified prior
 distribution.  Default FALSE.  Where information concerning
 overdispersion in the data is sparse, the choice of prior distribution
-will have an affect on the posterior distribution for ALL parameters. 
+will have an affect on the posterior distribution for ALL parameters.
 It is recommended to run a simulation using both types of prior when
 working with small datasets, to make sure results are consistent.}
 \item{adjust.zi.mean}{should the mean count parameter of the
@@ -61,7 +61,7 @@ models reflects the mean of the gamma or Poisson distribution only, if
 TRUE the mean includes extra zeros.  Used for comparing results between
 zero-inflated and non zero-inflated models.  Default FALSE.}
 \item{raw.output}{the function can return either a summary of the
-results (as with bayescount), or an MCMC object representing the
+results or an MCMC object representing the
 estimates at each iteration for both chains (including the likelihood
 estimates where appropriate).  If TRUE, the latter is output.  (logical)
  Default FALSE.} \item{likelihood}{should the (log) likelihood for the
@@ -69,13 +69,11 @@ fit of the model to the dataset be calculated? (logical)  The likelihood
 for the [ZI] WP, LP and GP models are calculated using a likelihood
 function integrated over all possible values for lambda, which can take
 some time.  The likelihood is calculated using a thinned chain of 1000
-values to reduce the time taken.  ** This option is deprecated and will
-be removed from bayescount version 1 **} \item{...}{additional arguments
+values to reduce the time taken.} \item{...}{additional arguments
 to be passed directly to \code{\link[runjags]{autorun.jags}}.}
 }
 
-\value{Either a vector similar to that obtained from
-\code{\link{bayescount}} containing an indication of the
+\value{Either a vector containing an indication of the
 error/crash/convergence status, the number of sampled updates used, and
 a lower/upper 95\% highest posterior density interval (see
 \code{\link[coda]{HPDinterval}}), and median estimate for each relevant
@@ -91,9 +89,9 @@ including the likelihood).
 
 # use a zero-inflated lognormal Poisson model to analyse some count
 # data, and suppressing JAGS output:
-# 
+#
 \dontrun{
-results <- bayescount.single(data=c(0,5,3,7,0,4,3,8,0),
+results <- fec.analysis(data=c(0,5,3,7,0,4,3,8,0),
 model="ZILP", silent.jags=TRUE)
 }
 }

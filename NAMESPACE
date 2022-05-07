@@ -5,17 +5,20 @@ import(
 	parallel,
 	rjags,
 	runjags
-	
+
 )
 
 # Can't import the full coda package as runjags also exports as.mcmc/list:
 importFrom(coda, niter, HPDinterval, autocorr.diag, mcmc.list, nvar)
 
+importFrom("grDevices", "dev.off", "pdf")
+importFrom("graphics", "abline", "hist")
+
 export(
 
 	fecrt.analysis,  	# preferred
 	FECRT.analysis,
-	fecrt,				
+	fecrt,
 	FECRT,
 
 	fecrt.model,		# preferred
@@ -29,22 +32,22 @@ export(
 	fecrt.power.limits,	# allowed but deprecated
 	FECRT.power.limits,	# allowed but deprecated
 
-	count.analysis,		# preferred
-	fec.analysis,		
+	count.analysis,
+	fec.analysis,
 	FEC.analysis,
-	bayescount.single,  # allowed but deprecated 
+	bayescount.single,  # allowed but deprecated
 
-	count.model,		# preferred
+	count.model,
 	fec.model,
 	FEC.model,
 	run.model,			# allowed but deprecated
 
-	count.power,		# preferred
-	fec.power, 			
+	count.power,
+	fec.power,
 	FEC.power,
-	
+
 	count.precision,	# preferred
-	fec.precision, 		
+	fec.precision,
 	FEC.precision,
 	fec.power.limits,	# allowed but deprecated
 	FEC.power.limits,	# allowed but deprecated
@@ -52,8 +55,8 @@ export(
 	normal.params, 		# only one
 	lnormal.params,		# only one
 
-	likelihood, 		# deprecated will be removed version 1
-	maximise.likelihood, # deprecated will be removed version 1
+	likelihood,
+	maximise.likelihood,
 	bayescount  		# deprecated will be changed to package version 1
 
 	)

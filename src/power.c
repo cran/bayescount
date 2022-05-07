@@ -4,23 +4,23 @@
 #include <stdio.h>
 
 int arel(int position[], int dimlengths[], int dims){
-	
+
 	/* Function to find the element number of a multi-dimensional array (probably obtained from R).  Needs to know the dimlengths and the number of dimensions */
-	
+
 	int element = position[0];
 	int i;
-	
+
 	int mult[dims];
-	
+
 	mult[0] = 1;
-	
+
 	for(i=1; i<dims; i++){
 		mult[i]=mult[i-1]*dimlengths[i-1];
 		element = element + (mult[i]*(position[i]-1));
 	}
-	
+
 	return(element-1);
-	
+
 }
 
 /*
@@ -52,9 +52,9 @@ double myround(double number, int decimals){
 /*
 void poweranalysispopulation(double *meanepg, double *gfaeces, double *sensitivity, int *animals, double *coeffvarind, double *coeffvargroup, double *accuracy, int *miniterations, int *maxiterations, int *skip, int *precision, int *nin, int *ntotal){
 
-double shapegp; 
+double shapegp;
 double shapein;
-	
+
 shapegp = 1/(coeffvargroup[0]*coeffvargroup[0]);
 shapein = 1/(coeffvarind[0]*coeffvarind[0]);
 
@@ -86,26 +86,26 @@ int newminiters;
 newminiters = (int)ceil((double)miniterations[0] / (double)skip[0]) * skip[0];
 
 for(set=0; set<newminiters; set++){
-	
+
 	sumcount = 0;
-	
+
 	for(a=0; a<animals[0]; a++){
 		GetRNGstate();
 		indmeans[a] = rgamma(shapegp, (meanepg[0] / shapegp));
-		PutRNGstate(); 
+		PutRNGstate();
 		GetRNGstate();
 		samplemeans[a] = rgamma(shapein*gfaeces[0], indmeans[a]/(shapein*gfaeces[0]));
-		PutRNGstate(); 
+		PutRNGstate();
 		GetRNGstate();
 		sumcount = sumcount + rpois(samplemeans[a]);
-		PutRNGstate(); 
+		PutRNGstate();
 	}
-	
+
 	ntotal[0]++;
 	meancount = ((double)sumcount)/animals[0];
 	nin[0] = nin[0] + ((meancount <= upper) && (meancount >= lower));
 	//printf("%f, %f, %f\n", lower, meancount, upper);
-	
+
 	//printf("%f\n", sumdarray(indmeans, animals[0])/animals[0]);
 }
 
@@ -120,35 +120,35 @@ printf("%f, %f\n", myround(lci, decimals), myround(uci,decimals));
 
 for(set=miniterations[0]; set<(maxiterations[0]-skip[0]); set=set+skip[0]){
 //for(set=0; set<maxiterations[0]; set++){
-		
+
 	sumcount = 0;
-	
+
 	for(skipset=0; skipset<skip[0]; skipset++){
 		for(a=0; a<animals[0]; a++){
 			GetRNGstate();
 			indmeans[a] = rgamma(shapegp, (meanepg[0] / shapegp));
-			PutRNGstate(); 
+			PutRNGstate();
 			GetRNGstate();
 			samplemeans[a] = rgamma(shapein*gfaeces[0], indmeans[a]/(shapein*gfaeces[0]));
-			PutRNGstate(); 
+			PutRNGstate();
 			GetRNGstate();
 			sumcount = sumcount + rpois(samplemeans[a]);
-			PutRNGstate(); 
+			PutRNGstate();
 		}
 		ntotal[0]++;
 		meancount = ((double)sumcount)/animals[0];
 		nin[0] = nin[0] + ((meancount <= upper) && (meancount >= lower));
 		//printf("%f, %f, %f\n", lower, meancount, upper);
 	}
-	
+
 	lci = qbeta(0.025, (ntotal[0]-nin[0])+1, nin[0]+1, 1, 0);//myround(qbeta(0.025, (ntotal[0]-nin[0])+1, nin[0]+1, 0, 0), decimals);
 	uci = qbeta(0.975, (ntotal[0]-nin[0])+1, nin[0]+1, 1, 0);//myround(qbeta(0.975, (ntotal[0]-nin[0])+1, nin[0]+1, 0, 0), decimals);
-	
+
 	//printf("%f, %f\n", lci, uci);
 	if(myround(lci, decimals) == myround(uci,decimals)){
 		break;
 	}
-	
+
 	//qbeta(double, double, double, int, int);
 	//qbeta(c(0.025, 0.5, 0.975), iterations-ci, ci, lower.tail=FALSE))
 	//printf("%f\n", sumdarray(indmeans, animals[0])/animals[0]);
@@ -192,9 +192,9 @@ if(print[0]){
 GetRNGstate();
 
 for(set=maxiterations[0]; set--; ){
-//Same as for(set=0; set<maxiterations[0]; set++){ but quicker - INDEXING IS BACKWARDS	
+//Same as for(set=0; set<maxiterations[0]; set++){ but quicker - INDEXING IS BACKWARDS
 	sumcount = 0.;
-	
+
 	for(a=animals[0]; a--; ){
 	//Same as for(a=0; a<animals[0]; a++){ but quicker - INDEXING IS BACKWARDS
 		indmeans = rgamma(shapegp, (meanepg[0] / shapegp));
@@ -203,12 +203,12 @@ for(set=maxiterations[0]; set--; ){
 	}
 	ntotal[0]++;
 	meancount = sumcount/(animals[0]*replicates[0]);
-	
+
 	nin[0] = nin[0] + ((meancount <= upper) && (meancount >= lower));
-	
+
 	lci = qbeta(lcil[0], nin[0]+1, (ntotal[0]-nin[0])+1, 1, 0);
 	uci = qbeta(ucil[0], nin[0]+1, (ntotal[0]-nin[0])+1, 1, 0);
-	
+
 	if(print[0]){
 		Rprintf("%f, %f, %i\r", lci, uci, ntotal[0]);
 	}
@@ -217,7 +217,7 @@ for(set=maxiterations[0]; set--; ){
 	}
 }
 
-PutRNGstate(); 
+PutRNGstate();
 
 if(print[0]){
 	if(myround(lci, decimals) == myround(uci,decimals)){
@@ -257,9 +257,9 @@ if(print[0]){
 GetRNGstate();
 
 for(set=0; set<maxiterations[0]; set++){
-//Same as for(set=0; set<maxiterations[0]; set++){ but quicker - INDEXING IS BACKWARDS	
+//Same as for(set=0; set<maxiterations[0]; set++){ but quicker - INDEXING IS BACKWARDS
 	sumcount = 0.;
-	
+
 	for(a=animals[0]; a--; ){
 	//Same as for(a=0; a<animals[0]; a++){ but quicker - INDEXING IS BACKWARDS
 		indmeans = rgamma(shapegp, (meanepg[0] / shapegp));
@@ -268,15 +268,15 @@ for(set=0; set<maxiterations[0]; set++){
 	}
 
 	meancount = sumcount/(animals[0]*replicates[0]);
-	
+
 	meancounts[set] = meancount;
-	
+
 	if(print[0]){
 		Rprintf("%f%% complete\r", set/maxiterations[0]);
 	}
 }
 
-PutRNGstate(); 
+PutRNGstate();
 
 if(print[0]){
 	Rprintf("< Finished >\n");
@@ -319,20 +319,20 @@ if(print[0]){
 GetRNGstate();
 
 for(set=maxiterations[0]; set--; ){
-//Same as for(set=0; set<maxiterations[0]; set++){ but quicker - INDEXING IS BACKWARDS	
-	
+//Same as for(set=0; set<maxiterations[0]; set++){ but quicker - INDEXING IS BACKWARDS
+
 	for(;;){
 		samplesum = 0;
 		done = 1;
-	
+
 		for(a=animals[0]; a--; ){
 		//Same as for(a=0; a<animals[0]; a++){ but quicker - INDEXING IS BACKWARDS
 			indmeans[a] = rgamma(shapegp, (meanepg[0] / shapegp));
 			samplesum = samplesum+indmeans[a];
 		}
-	
+
 		adjust = meanepg[0] - (samplesum / animals[0]);
-	
+
 		for(a=animals[0]; a--; ){
 			indmeans[a] = indmeans[a] + adjust;
 			if(indmeans[a] < 0){
@@ -340,27 +340,27 @@ for(set=maxiterations[0]; set--; ){
 				break;
 			}
 		}
-		
+
 		if(done==1){
 			break;
 		}
 	}
-	
+
 	sumcount = 0.;
-		
+
 	for(a=animals[0]; a--; ){
 		replicatemeans = rgamma(shapeindt*replicates[0], indmeans[a]/(shapeindt*replicates[0]));
 		sumcount = sumcount + (((double)rpois(replicatemeans*replicates[0]*sensitivity[0]))*(1/sensitivity[0]));
 	}
-	
+
 	ntotal[0]++;
 	meancount = sumcount/(animals[0]*replicates[0]);
-	
+
 	nin[0] = nin[0] + ((meancount <= upper) && (meancount >= lower));
-	
+
 	lci = qbeta(lcil[0], nin[0]+1, (ntotal[0]-nin[0])+1, 1, 0);
 	uci = qbeta(ucil[0], nin[0]+1, (ntotal[0]-nin[0])+1, 1, 0);
-	
+
 	if(print[0]){
 		Rprintf("%f, %f, %i\r", lci, uci, ntotal[0]);
 	}
@@ -409,20 +409,20 @@ if(print[0]){
 GetRNGstate();
 
 for(set=maxiterations[0]; set--; ){
-//Same as for(set=0; set<maxiterations[0]; set++){ but quicker - INDEXING IS BACKWARDS	
-	
+//Same as for(set=0; set<maxiterations[0]; set++){ but quicker - INDEXING IS BACKWARDS
+
 	for(;;){
 		samplesum = 0;
 		done = 1;
-	
+
 		for(a=animals[0]; a--; ){
 		//Same as for(a=0; a<animals[0]; a++){ but quicker - INDEXING IS BACKWARDS
 			indmeans[a] = rgamma(shapegp, (meanepg[0] / shapegp));
 			samplesum = samplesum+indmeans[a];
 		}
-	
+
 		adjust = meanepg[0] - (samplesum / animals[0]);
-	
+
 		for(a=animals[0]; a--; ){
 			indmeans[a] = indmeans[a] + adjust;
 			if(indmeans[a] < 0){
@@ -430,22 +430,22 @@ for(set=maxiterations[0]; set--; ){
 				break;
 			}
 		}
-		
+
 		if(done==1){
 			break;
 		}
 	}
-	
+
 	sumcount = 0.;
-		
+
 	for(a=animals[0]; a--; ){
 		replicatemeans = rgamma(shapeindt*replicates[0], indmeans[a]/(shapeindt*replicates[0]));
 		sumcount = sumcount + (((double)rpois(replicatemeans*replicates[0]*sensitivity[0]))*(1/sensitivity[0]));
 	}
-	
+
 	meancount = sumcount/(animals[0]*replicates[0]);
 	meancounts[set] = meancount;
-		
+
 	if(print[0]){
 		Rprintf("%f%% complete\r", set/maxiterations[0]);
 	}
@@ -499,34 +499,34 @@ if(print[0]){
 GetRNGstate();
 
 for(set=maxiterations[0]; set--; ){
-//Same as for(set=0; set<maxiterations[0]; set++){ but quicker - INDEXING IS BACKWARDS	
+//Same as for(set=0; set<maxiterations[0]; set++){ but quicker - INDEXING IS BACKWARDS
 	presumcount = 0.;
 	postsumcount = 0.;
-	
+
 	for(a=animals[0]; a--; ){
 	//Same as for(a=0; a<animals[0]; a++){ but quicker - INDEXING IS BACKWARDS
 		indmeans = rgamma(preshapegp, (meanepg[0] / preshapegp));
 		replicatemeans = rgamma(preshapeindt*replicates[0], indmeans/(preshapeindt*replicates[0]));
 		presumcount = presumcount + (((double)rpois(replicatemeans*replicates[0]*sensitivity[0]))*(1/sensitivity[0]));
-		
+
 		indmeans = rgamma(postshapegp, ((meanepg[0]*reduction[0]) / postshapegp));
 		replicatemeans = rgamma(postshapeindt*replicates[0], indmeans/(postshapeindt*replicates[0]));
 		postsumcount = postsumcount + (((double)rpois(replicatemeans*replicates[0]*sensitivity[0]))*(1/sensitivity[0]));
 	}
 	ntotal[0]++;
-	
+
 	//Will give NaN if pre=post=0 or Inf if pre=0 & post>0.  The reductions for these should be 0, so delta =1:
 	if(presumcount==0){
 		meanred=1;
 	}else{
 		meanred = postsumcount / presumcount;
 	}
-	
+
 	nin[0] = nin[0] + ((meanred <= upper) && (meanred >= lower));
-	
+
 	lci = qbeta(lcil[0], nin[0]+1, (ntotal[0]-nin[0])+1, 1, 0);
 	uci = qbeta(ucil[0], nin[0]+1, (ntotal[0]-nin[0])+1, 1, 0);
-	
+
 	if(print[0]){
 		Rprintf("%f, %f, %i\r", lci, uci, ntotal[0]);
 	}
@@ -535,7 +535,7 @@ for(set=maxiterations[0]; set--; ){
 	}
 }
 
-PutRNGstate(); 
+PutRNGstate();
 
 if(print[0]){
 	if(myround(lci, decimals) == myround(uci,decimals)){
@@ -590,20 +590,20 @@ if(print[0]){
 GetRNGstate();
 
 for(set=maxiterations[0]; set--; ){
-//Same as for(set=0; set<maxiterations[0]; set++){ but quicker - INDEXING IS BACKWARDS	
-	
+//Same as for(set=0; set<maxiterations[0]; set++){ but quicker - INDEXING IS BACKWARDS
+
 	for(;;){
 		samplesum = 0;
 		done = 1;
-	
+
 		for(a=animals[0]; a--; ){
 		//Same as for(a=0; a<animals[0]; a++){ but quicker - INDEXING IS BACKWARDS
 			preindmeans[a] = rgamma(preshapegp, (meanepg[0] / preshapegp));
 			samplesum = samplesum+preindmeans[a];
 		}
-	
+
 		adjust = meanepg[0] - (samplesum / animals[0]);
-	
+
 		for(a=animals[0]; a--; ){
 			preindmeans[a] = preindmeans[a] + adjust;
 			if(preindmeans[a] < 0){
@@ -611,24 +611,24 @@ for(set=maxiterations[0]; set--; ){
 				break;
 			}
 		}
-		
+
 		if(done==1){
 			break;
 		}
 	}
-	
+
 	for(;;){
 		samplesum = 0;
 		done = 1;
-	
+
 		for(a=animals[0]; a--; ){
 		//Same as for(a=0; a<animals[0]; a++){ but quicker - INDEXING IS BACKWARDS
 			postindmeans[a] = rgamma(postshapegp, ((meanepg[0]*reduction[0]) / postshapegp));
 			samplesum = samplesum+postindmeans[a];
 		}
-	
+
 		adjust = (meanepg[0]*reduction[0]) - (samplesum / animals[0]);
-	
+
 		for(a=animals[0]; a--; ){
 			postindmeans[a] = postindmeans[a] + adjust;
 			if(postindmeans[a] < 0){
@@ -636,15 +636,15 @@ for(set=maxiterations[0]; set--; ){
 				break;
 			}
 		}
-		
+
 		if(done==1){
 			break;
 		}
 	}
-	
+
 	presumcount = 0.;
 	postsumcount = 0.;
-	
+
 	for(a=animals[0]; a--; ){
 	//Same as for(a=0; a<animals[0]; a++){ but quicker - INDEXING IS BACKWARDS
 		replicatemeans = rgamma(preshapeindt*replicates[0], preindmeans[a]/(preshapeindt*replicates[0]));
@@ -654,21 +654,21 @@ for(set=maxiterations[0]; set--; ){
 		postsumcount = postsumcount + (((double)rpois(replicatemeans*replicates[0]*sensitivity[0]))*(1/sensitivity[0]));
 
 	}
-	
+
 	ntotal[0]++;
-	
+
 	//Will give NaN if pre=post=0 or Inf if pre=0 & post>0.  The reductions for these should be 0, so delta =1:
 	if(presumcount==0){
 		meanred=1;
 	}else{
 		meanred = postsumcount / presumcount;
 	}
-	
+
 	nin[0] = nin[0] + ((meanred <= upper) && (meanred >= lower));
-	
+
 	lci = qbeta(lcil[0], nin[0]+1, (ntotal[0]-nin[0])+1, 1, 0);
 	uci = qbeta(ucil[0], nin[0]+1, (ntotal[0]-nin[0])+1, 1, 0);
-	
+
 	if(print[0]){
 		Rprintf("%f, %f, %i\r", lci, uci, ntotal[0]);
 	}
@@ -677,7 +677,7 @@ for(set=maxiterations[0]; set--; ){
 	}
 }
 
-PutRNGstate(); 
+PutRNGstate();
 
 if(print[0]){
 	if(myround(lci, decimals) == myround(uci,decimals)){
@@ -722,16 +722,16 @@ if(print[0]){
 GetRNGstate();
 
 for(set=0; set<maxiterations[0]; set++){
-//Same as for(set=0; set<maxiterations[0]; set++){ but quicker - INDEXING IS BACKWARDS	
+//Same as for(set=0; set<maxiterations[0]; set++){ but quicker - INDEXING IS BACKWARDS
 	presumcount = 0.;
 	postsumcount = 0.;
-	
+
 	for(a=animals[0]; a--; ){
 	//Same as for(a=0; a<animals[0]; a++){ but quicker - INDEXING IS BACKWARDS
 		indmeans = rgamma(preshapegp, (meanepg[0] / preshapegp));
 		replicatemeans = rgamma(preshapeindt*replicates[0], indmeans/(preshapeindt*replicates[0]));
 		presumcount = presumcount + (((double)rpois(replicatemeans*replicates[0]*sensitivity[0]))*(1/sensitivity[0]));
-		
+
 		indmeans = rgamma(postshapegp, ((meanepg[0]*reduction[0]) / postshapegp));
 		replicatemeans = rgamma(postshapeindt*replicates[0], indmeans/(postshapeindt*replicates[0]));
 		postsumcount = postsumcount + (((double)rpois(replicatemeans*replicates[0]*sensitivity[0]))*(1/sensitivity[0]));
@@ -743,15 +743,15 @@ for(set=0; set<maxiterations[0]; set++){
 	}else{
 		meanred = postsumcount / presumcount;
 	}
-	
+
 	meanreds[set] = meanred;
-	
+
 	if(print[0]){
 		Rprintf("%f%% complete\r", set/maxiterations[0]);
 	}
 }
 
-PutRNGstate(); 
+PutRNGstate();
 
 if(print[0]){
 	Rprintf("< Finished >\n");
@@ -791,20 +791,20 @@ if(print[0]){
 GetRNGstate();
 
 for(set=0; set<maxiterations[0]; set++){
-//Same as for(set=0; set<maxiterations[0]; set++){ but quicker - INDEXING IS BACKWARDS	
-	
+//Same as for(set=0; set<maxiterations[0]; set++){ but quicker - INDEXING IS BACKWARDS
+
 	for(;;){
 		samplesum = 0;
 		done = 1;
-	
+
 		for(a=animals[0]; a--; ){
 		//Same as for(a=0; a<animals[0]; a++){ but quicker - INDEXING IS BACKWARDS
 			preindmeans[a] = rgamma(preshapegp, (meanepg[0] / preshapegp));
 			samplesum = samplesum+preindmeans[a];
 		}
-	
+
 		adjust = meanepg[0] - (samplesum / animals[0]);
-	
+
 		for(a=animals[0]; a--; ){
 			preindmeans[a] = preindmeans[a] + adjust;
 			if(preindmeans[a] < 0){
@@ -812,24 +812,24 @@ for(set=0; set<maxiterations[0]; set++){
 				break;
 			}
 		}
-		
+
 		if(done==1){
 			break;
 		}
 	}
-	
+
 	for(;;){
 		samplesum = 0;
 		done = 1;
-	
+
 		for(a=animals[0]; a--; ){
 		//Same as for(a=0; a<animals[0]; a++){ but quicker - INDEXING IS BACKWARDS
 			postindmeans[a] = rgamma(postshapegp, ((meanepg[0]*reduction[0]) / postshapegp));
 			samplesum = samplesum+postindmeans[a];
 		}
-	
+
 		adjust = (meanepg[0]*reduction[0]) - (samplesum / animals[0]);
-	
+
 		for(a=animals[0]; a--; ){
 			postindmeans[a] = postindmeans[a] + adjust;
 			if(postindmeans[a] < 0){
@@ -837,15 +837,15 @@ for(set=0; set<maxiterations[0]; set++){
 				break;
 			}
 		}
-		
+
 		if(done==1){
 			break;
 		}
 	}
-	
+
 	presumcount = 0.;
 	postsumcount = 0.;
-	
+
 	for(a=animals[0]; a--; ){
 	//Same as for(a=0; a<animals[0]; a++){ but quicker - INDEXING IS BACKWARDS
 		replicatemeans = rgamma(preshapeindt*replicates[0], preindmeans[a]/(preshapeindt*replicates[0]));
@@ -855,7 +855,7 @@ for(set=0; set<maxiterations[0]; set++){
 		postsumcount = postsumcount + (((double)rpois(replicatemeans*replicates[0]*sensitivity[0]))*(1/sensitivity[0]));
 
 	}
-	
+
 	//Will give NaN if pre=post=0 or Inf if pre=0 & post>0.  The reductions for these should be 0, so delta =1:
 	if(presumcount==0){
 		meanred=1;
@@ -869,7 +869,7 @@ for(set=0; set<maxiterations[0]; set++){
 	}
 }
 
-PutRNGstate(); 
+PutRNGstate();
 
 if(print[0]){
 	Rprintf("< Finished >\n");
@@ -878,7 +878,7 @@ if(print[0]){
 }
 
 
-/* 
+/*
 dyn.load("power.so")
 start <- Sys.time()
 out <- .C("poweranalysispopulation", as.numeric(10), as.numeric(1), as.numeric(1), as.integer(100), as.numeric(0.1), as.numeric(0.1), as.numeric(0.1), as.integer(100), as.integer(100000), as.integer(10000), as.integer(3), as.integer(0), as.integer(0))
@@ -919,7 +919,7 @@ for (set in 1:iterations)  {
 individual.means <- rgamma(animals, shape.gp, scale=mean.epg/shape.gp)
 
 sample.means <- replicate(animals, mean(rgamma(g.faeces, shape.in, scale=individual.means/shape.in)))
-	
+
 obs.counts <- rpois(animals, sample.means*sensitivity)*(1/sensitivity)
 obs.mean <- mean(obs.counts, na.rm=TRUE)
 
@@ -941,7 +941,7 @@ power.analysis.true.sample <- function(mean.epg=NA, g.faeces=NA, sensitivity=NA,
 
 shape.gp <- 1/coeff.var.group^2
 shape.in <- 1/coeff.var.ind^2
-	
+
 data.matx <- numeric(length = iterations)
 for (set in 1:iterations)  {
 

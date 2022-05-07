@@ -1,8 +1,8 @@
 Package: bayescount
 Title: Power Calculations and Bayesian Analysis of Count Distributions
         and FECRT Data using MCMC
-Version: 0.9.99-5
-Date: 2015-04-18
+Version: 0.9.99-8
+Date: 2022-05-07
 Authors@R: person("Matthew", "Denwood", role=c("aut","cre"), email="md@sund.ku.dk")
 Depends: R (>= 2.14.0)
 Imports: runjags (>= 2.0.1), rjags, coda, stats, utils
@@ -19,9 +19,9 @@ Description: A set of functions to allow analysis of count data (such
         egg counts (including FECRT) are also provided.
 License: GPL-2
 URL: http://bayescount.sourceforge.net
-Packaged: 2015-04-18 09:34:21 UTC; matthewdenwood
+NeedsCompilation: yes
+Packaged: 2022-05-07 13:39:20 UTC; matthewdenwood
 Author: Matthew Denwood [aut, cre]
 Maintainer: Matthew Denwood <md@sund.ku.dk>
-NeedsCompilation: yes
 Repository: CRAN
-Date/Publication: 2015-04-20 11:46:52
+Date/Publication: 2022-05-07 15:00:02 UTC

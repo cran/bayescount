@@ -2,14 +2,11 @@
 \alias{likelihood}
 \title{Calculate the (Log) Likelihood of Obtaining Data from a Distribution}
 \description{
-   Function to calculate the (log) likelihood of obtaining a set of data from one of the following distributions:  Poisson (P), gamma (G), lognormal (L), Weibull (W), gamma Poisson (GP), lognormal Poisson (LP), Weibull Poisson (WP), all with or without zero-inflation (ZI).  For mixture models, the likelihood is calculated for the data by integrating over each possible value of lambda for each data point, which may take some time for large datasets.  
-   
-   * NOTE: THIS FUNCTION IS DEPRECATED AND WILL BE REMOVED FROM BAYESCOUNT VERSION 1 *
-   
+   Function to calculate the (log) likelihood of obtaining a set of data from one of the following distributions:  Poisson (P), gamma (G), lognormal (L), Weibull (W), gamma Poisson (GP), lognormal Poisson (LP), Weibull Poisson (WP), all with or without zero-inflation (ZI).  For mixture models, the likelihood is calculated for the data by integrating over each possible value of lambda for each data point, which may take some time for large datasets.
 }
 \usage{
-likelihood(model, data, mean=NA, variance=NA, 
-   zi=NA, shape=NA, scale=NA, 
+likelihood(model, data, mean=NA, variance=NA,
+   zi=NA, shape=NA, scale=NA,
    iterations=min(1000, (length(as.matrix(mean)[,1])*length(shape))),
    log=TRUE, silent=FALSE, raw.output=FALSE)
 }
@@ -34,8 +31,8 @@ likelihood(model, data, mean=NA, variance=NA,
 
 \examples{
 
-# calculate the likelihood of obtaining a set of count data from 
-# a zero-inflated Poisson distribution with set mean and zero-inflation 
+# calculate the likelihood of obtaining a set of count data from
+# a zero-inflated Poisson distribution with set mean and zero-inflation
 # values
 
 data <- rpois(100, 10)
@@ -43,17 +40,17 @@ data[1:15] <- 0
 
 likelihood('ZIP', data, mean=10, zi=15)
 
-# now calculate the likelihood for the same data using an MCMC object 
+# now calculate the likelihood for the same data using an MCMC object
 # to provide the values for mean and zero-inflation
 
 \dontrun{
-values <- bayescount.single(data, model='ZISP', raw.output=TRUE)$mcmc
+values <- fec.analysis(data, model='ZISP', raw.output=TRUE)$mcmc
 means <- c(values[,'mean'][[1]], values[,'mean'][[2]])
-zis <- (1-c(values[,'prob'][[1]], values[,'prob'][[2]]))*100 
-# The function outputs the prevalence of disease when raw.ouput is 
+zis <- (1-c(values[,'prob'][[1]], values[,'prob'][[2]]))*100
+# The function outputs the prevalence of disease when raw.ouput is
 # TRUE, so zero-inflation must be calculated from this
 
-likes <- likelihood('ZIP', data, mean=means, zi=zis, 
+likes <- likelihood('ZIP', data, mean=means, zi=zis,
 raw.output=TRUE)$likelihood
 hist(likes, breaks='fd', col='red')
 }

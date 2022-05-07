@@ -1,5 +1,5 @@
 run.model <- function(data=stop("No data supplied"), model=stop("No model specified"), call.jags = FALSE, alt.prior = FALSE, monitor.lambda=FALSE, monitor.deviance=FALSE, ...){
-	
+
 ###  Currently only the IP model requires gamma monitored for the likelihood bit - others are integrated
 
 if(monitor.lambda==TRUE && model!="IP"){
@@ -12,68 +12,68 @@ if(call.jags){
 
 updates <- sample
 
-if(class(data)=="list"){
-	
-	if(suppressWarnings(class(data$totals) != "NULL" & class(data$repeats) != "NULL")){
+if(is.list(data)){
+
+	if(suppressWarnings(class(data$totals)[1] != "NULL" && class(data$repeats)[1] != "NULL")){
 		# data is a list of counts and repeats
 		totals <- data$totals
 		repeats <- data$repeats
-		
+
 		if(length(totals)!=length(repeats)) stop("The number of repeats does not match the length of totals")
-		
+
 		if(any(is.na(totals)) | any(is.na(repeats))) stop("Missing data is not allowed in repeats or totals")
-		
+
 		data <- matrix(NA, ncol=max(repeats), nrow=length(totals))
-		
+
 		for(i in 1:length(totals)){
-				
+
 			if(round(totals[i])!=totals[i]) stop("All totals must be an integer")
 			if(round(repeats[i])!=repeats[i] | repeats[i] < 1) stop("All repeats must be an integer greater than 0")
-			
+
 			if(repeats[i] > 1){
 
 				done <- FALSE
-	
+
 				while(!done){
 					data[i,1:repeats[i]] <- rpois(repeats[i], totals[i]/repeats[i])
 					if(sum(data[i,],na.rm=TRUE)==totals[i] & all(na.omit(data[i,]) >= 0)) done <- TRUE
-		
+
 				}
 			}else{
 				data[i,1] <- totals[i]
 			}
 		}
-		
+
 	}else{
 
 		delist <- function(list){
-		
+
 		N <- length(list)
 		R <- numeric(length=N)
-	
+
 		for(i in 1:N){
 			R[i] <- length(na.omit(as.numeric(list[[i]])))
-		
+
 		}
-	
+
 		if(sum(R>0)==0) stop("No real values in the data")
-	
+
 		data <- matrix(NA, ncol=max(R), nrow=N)
-	
+
 		for(i in 1:N){
 			data[i,(min(R[i], 1):R[i])] <- na.omit(as.numeric(list[[i]]))
 		}
-	
+
 		data <- data[apply(!is.na(data), 1, sum)>0,]
 
 		if(sum(R>0)==1) return(matrix(data, nrow=1)) else return(data)
 		}
-	
-		data <- delist(data)	
+
+		data <- delist(data)
 	}
 }
 
-if(class(data)!="matrix"){
+if(!inherits(data, "matrix")){
 	counts <- matrix(as.numeric(data[!is.na(data)]), ncol=1)
 	N <- length(counts)
 	R <- numeric(length=N)
@@ -112,7 +112,7 @@ if(sum(model==models) != 1){
 chains <- 2
 
 inits <- matrix("", ncol=5, nrow=2)
-	
+
 if(alt.prior!=FALSE & (any(model==c("IP", "SP", "ZISP")))){
 	cat("Warning:  Alternate or custom prior distribution for dispersion for the ", model, " model is not allowed.  The standard prior distribution will be used\n", sep="")
 	alt.prior <- FALSE
@@ -136,7 +136,7 @@ if(any(!is.na(dataformean2))){
 }
 
 if(any(!is.na(dataformean))){
-	largestdispersion <- ((var(dataformean, na.rm=TRUE) - mean(dataformean, na.rm=TRUE))^0.5 / mean(dataformean, na.rm=TRUE)) * 2 
+	largestdispersion <- ((var(dataformean, na.rm=TRUE) - mean(dataformean, na.rm=TRUE))^0.5 / mean(dataformean, na.rm=TRUE)) * 2
 }else{
 	largestdispersion <- 5
 }
@@ -181,11 +181,11 @@ if(any(model==c(paste("G", 1:10, sep=""), paste("L", 1:10, sep="")))){
 	probpos[] <- 1
 	gammas <- dataformean2
 	gammas[gammas < 1] <- 1
-	
+
 	initstring[1] <- paste(dump.format(list(prob=0.95, probpos=probpos, gamma=gammas)))
 	probpos[zeros] <- 0
 	initstring[2] <- paste(initstring[2], dump.format(list(prob=min(round(sum(data!=0)/length(data),2), 0.05, na.rm=TRUE), probpos=probpos, gamma=gammas)))
-		
+
 }else{
 	true.model <- ""
 }
@@ -195,27 +195,27 @@ if(any(model==c(paste("G", 1:10, sep=""), paste("L", 1:10, sep="")))){
 if(model=="SP" | model=="ZISP"){
 	initstring[1] <- dump.format(list(mean=smallestmean))
 	initstring[2] <- dump.format(list(mean=largestmean))
-	
+
 }
 
 if(model=="LP" | model=="ZILP"){
 
 	lgammas1 = lgammas2 <- pmax(dataformean, 0.1, na.rm=TRUE)
-	
+
 	lninits1 <- lnormal.params(mean=smallestmean, NA, largestdispersion)
 	lninits2 <- lnormal.params(mean=largestmean, NA, smallestdispersion)
 	#not actually var but i'm not changing code:
 	varinitl <- pmax(c(round(lninits1[[2]],3)),0.1, na.rm=TRUE)
 	varinitu <- pmax(c(round(lninits2[[2]],3)),0.1,na.rm=TRUE)
-	
+
 	initstr1 <-list(lmu=round(lninits1[[1]],3), gamma=lgammas1)
 	initstr2 <- list(lmu=round(lninits2[[1]],3), gamma=lgammas2)
-	
-	if(class(alt.prior)=="character"){
+
+	if(is.character(alt.prior)){
 		priorstring <- paste("lsd ~ ", alt.prior, ";\n", sep="")
 		inistr1 <- c(initstr1, lsd=varinitl)
 		inistr2 <- c(initstr2, lsd=varinitu)
-		
+
 	}else{
 		if(alt.prior==TRUE){  #CHANGED FROM FALSE TO TRUE
 			priorstring <- "llsd ~ dunif(-4.61, 0.765);\nlsd <- exp(llsd);"
@@ -227,9 +227,9 @@ if(model=="LP" | model=="ZILP"){
 			priorstring <- "lsd ~ dunif(0.01,2.149);\n"
 			initstr1 <- c(initstr1, lsd=varinitl)
 			initstr2 <- c(initstr2, lsd=varinitu)
-		}	
+		}
 	}
-	
+
 	#if(exists("zilp.type")){
 	#	if(zilp.type==3 | zilp.type==4){
 	#		initstr1$lmu <- smallestmean
@@ -240,8 +240,8 @@ if(model=="LP" | model=="ZILP"){
 	#}
 	initstring[1] <- dump.format(initstr1)
 	initstring[2] <- dump.format(initstr2)
-	
-	
+
+
 }
 
 if(model=="IP"){
@@ -260,11 +260,11 @@ if(model=="GP" | model=="ZIGP"){
 	gammas1 = gammas2 <- numeric(length=length(dataformean2))
 	gammas1[] <- 1
 	gammas2[] <- 1
-	
+
 	initstring[1] <- dump.format(list(mean=smallestmean, gamma=gammas1))
-	initstring[2] <- dump.format(list(mean=largestmean, gamma=gammas2))			
-	
-	if(class(alt.prior)=="character"){
+	initstring[2] <- dump.format(list(mean=largestmean, gamma=gammas2))
+
+	if(is.character(alt.prior)){
 		priorstring <- paste("ia ~ ", alt.prior, ";\n", sep="")
 		initstring[1] <- paste(initstring[1], dump.format(list(ia=largestdispersion^2)), sep="")
 		initstring[2] <- paste(initstring[2], dump.format(list(ia=smallestdispersion^2)), sep="")
@@ -289,7 +289,7 @@ if(model=="GP" | model=="ZIGP"){
 
 if(model=="WP" | model=="ZIWP"){
 
-	if(class(alt.prior)=="character"){
+	if(is.character(alt.prior)){
 		priorstring <- paste("a ~ ", alt.prior, ";\nb ~ ", alt.prior, ";\n", sep="")
 	}else{
 		if(alt.prior==FALSE){
@@ -298,14 +298,14 @@ if(model=="WP" | model=="ZIWP"){
 			priorstring <- "a ~ dunif(0.001,1000);\nb ~ dunif(0.001,1000);\n"
 		}
 	}
-	
+
 	gammas1 = gammas2 <- numeric(length=length(dataformean2))
 	gammas1[] <- 1
 	gammas2[] <- 100
-	
+
 	initstring[1] <- dump.format(list(a=0.01, gamma=gammas1, b=0.1))
 	initstring[2] <- dump.format(list(a=100, gamma=gammas2, b=100))
-	
+
 }
 
 if(model=="ZISP" | model=="ZILP" | model=="ZIGP" | model=="ZIWP"){
@@ -313,16 +313,16 @@ if(model=="ZISP" | model=="ZILP" | model=="ZIGP" | model=="ZIWP"){
 	probpos <- dataformean2
 	zeros <- probpos==0
 	probpos[] <- 1
-	
+
 	initstring[1] <- paste(initstring[1], dump.format(list(prob=0.95, probpos=probpos)))
 	probpos[zeros] <- 0
 	initstring[2] <- paste(initstring[2], dump.format(list(prob=min(round(sum(data!=0)/length(data),2), 0.05, na.rm=TRUE), probpos=probpos)))
-	
+
 }
 
 
 ##### make model string
-# L1-7 and G1-6 still here but can't be accessed 
+# L1-7 and G1-6 still here but can't be accessed
 
 if(model=="SP"){
 modelstring <- paste("model {
@@ -528,7 +528,7 @@ gamma[row] ~ dlnorm(lmu, lprec);
 probpos[row] ~ dbern(prob);
 }
 
-lvar <- log((sd/mean)^2 + 1); 
+lvar <- log((sd/mean)^2 + 1);
 lprec <- 1 / lvar;
 
 lmu <- log(mean) - ((lvar) / 2)

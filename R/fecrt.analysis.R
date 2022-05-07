@@ -3,13 +3,13 @@ fecrt.analysis <- function(name = NA, pre.data = NA, post.data = NA, data = list
 runname <- name
 
 # Individual analysis is removed for now, unless I add a distribution of efficacy for the paired model later.
-# individual.analysis=paired.model, 
+# individual.analysis=paired.model,
 #if(!paired.model & individual.analysis) stop("Individual analysis is only available using the paired model")
 
 lci <- 0+((1-(confidence))/2)
 uci <- 1-((1-(confidence))/2)
 
-div <- divide.data 
+div <- divide.data
 
 passthrough <- list(...)
 # Override some defaults:
@@ -44,39 +44,39 @@ if(testwritable=="Directory not writable"){
 	stop("Directory not writable")
 }
 
-if(class(data)=="function") stop("The class of the object supplied for data is a function")
+if(is.function(data)) stop("The class of the object supplied for data is a function")
 
-if(class(data)!="character" & class(data)!="matrix"){
-		
-	if(class(data)!="list") stop("Data supplied in an incorrect format")
+if(!is.character(data) && !inherits(data, "matrix")){
+
+	if(!is.list(data)) stop("Data supplied in an incorrect format")
 	if(length(data)!=2) stop("Data supplied in an incorrect format - the list must be of length two")
-	
+
 	pre.data <- data[[1]]
 	post.data <- data[[2]]
-	
-	if(class(pre.data)=="integer") pre.data <- as.numeric(pre.data)
-	if(class(post.data)=="integer") post.data <- as.numeric(post.data)
-	
-	if(class(pre.data)!=class(post.data)) stop("The pre and post treatment data must be provided in the same format")
-	
-	if(class(pre.data)=="array" & paired.model==FALSE) stop("The paired model is required when using repeat samples within animal.  Either specify the data as a matrix, or set paired.model=TRUE")
 
-	if(class(pre.data)=="matrix"){
+	if(is.integer(pre.data)) pre.data <- as.numeric(pre.data)
+	if(is.integer(post.data)) post.data <- as.numeric(post.data)
+
+	if(class(pre.data)[1]!=class(post.data)[1]) stop("The pre and post treatment data must be provided in the same format")
+
+	if(inherits(pre.data, "array") & paired.model==FALSE) stop("The paired model is required when using repeat samples within animal.  Either specify the data as a matrix, or set paired.model=TRUE")
+
+	if(inherits(pre.data, "matrix")){
 		dims <- dim(pre.data)
 		pre.data <- array(t(pre.data), dim=c(1,dims[2],dims[1]))
 		dims <- dim(post.data)
 		post.data <- array(t(post.data), dim=c(1,dims[2],dims[1]))
 	}
-	
-	if(class(pre.data)=="numeric" | class(pre.data)=="integer"){
+
+	if(inherits(pre.data, c("numeric", "integer"))){
 		pre.data <- array(pre.data, dim=c(1,1,length(pre.data)))
 		post.data <- array(post.data, dim=c(1,1,length(post.data)))
 	}
-	
+
 	if(dim(pre.data)[3] != dim(post.data)[3]) stop("Unequal numbers of animals pre- and post-treatment")
-	
+
 	data <- list(pre.counts=pre.data, post.counts=post.data)
-	
+
 }
 
 
@@ -96,22 +96,22 @@ length(datana) <- 1
 
 dataok=FALSE
 
-if(class(data)=="matrix" | class(data)=="list"){
+if(inherits(data, c("matrix","list"))){
 	dataok <- TRUE
 }else{
 	if(is.na(datana)==FALSE){
 	exists <- try(file.exists(datana), silent=TRUE)
-	if((class(exists)=="try-error")==FALSE){
+	if((!inherits(exists, "try-error"))){
 		if(exists==TRUE){
 			suppressWarnings(data <- try(read.csv(datain, header=FALSE), silent=TRUE))
 		}
 	}
 	suppressWarnings(valid.data <- try((length(as.matrix(data[,1])) > 1), silent=TRUE))
-	if((class(valid.data)=="try-error")==TRUE){
+	if((inherits(valid.data, "try-error"))){
 		cat("ERROR:  The path you have entered does not appear to be valid\n")
 	}else{
 		if(valid.data==FALSE){
-			cat("ERROR:  Invalid path / data\n") 
+			cat("ERROR:  Invalid path / data\n")
 		}else{
 			dataok=TRUE
 		}
@@ -125,12 +125,12 @@ while(dataok==FALSE){
 		stop("User exited the program")
 	}
 	exists <- try(file.exists(datain), silent=TRUE)
-	if((class(exists)=="try-error")==FALSE){
+	if((!inherits(exists, "try-error"))){
 		if(exists==TRUE){
 		data <- try(as.matrix(read.csv(datain, header=FALSE), silent=TRUE))
-		if((class(data)=="try-error")==FALSE){
+		if((!inherits(data, "try-error"))){
 			valid.data <- try(length(data[,1]) > 1, silent=TRUE)
-			if((class(valid.data)=="try-error")==TRUE){
+			if((inherits(valid.data, "try-error"))){
 				cat("ERROR:  The path you have entered does not appear to be valid\n")
 			}else{
 				if(valid.data==FALSE){
@@ -152,15 +152,15 @@ while(dataok==FALSE){
 
 }
 
-if(class(data)!="matrix" & identical(animal.names,TRUE)){
+if(!is.matrix(data) && identical(animal.names,TRUE)){
 	warning("'animal.names' cannot be TRUE if the data is not provided as a matrix.  'animal.names' will be set to FALSE")
 	animal.names <- FALSE
 }
 
-if(class(data)=="matrix"){
-	
+if(is.matrix(data)){
+
 	if(ncol(data) < (2+identical(animal.names,TRUE)) | ncol(data) > (3+identical(animal.names,TRUE))) stop("If provided as a matrix, the data must have either 2, 3 or 4 columns (if animal.names==TRUE)")
-	
+
 	if(identical(animal.names,TRUE)){
 		animal.names <- data[,1]
 		data <- data[,2:ncol(data)]
@@ -173,7 +173,7 @@ if(class(data)=="matrix"){
 	data <- list(pre.counts=pre.data, post.counts=post.data)
 }
 
-if(class(data$pre.counts) == "NULL" | class(data$post.counts) == "NULL") stop("An error occured while transforming the data to an appropriate format")
+if(class(data$pre.counts)[1] == "NULL" || class(data$post.counts)[1] == "NULL") stop("An error occured while transforming the data to an appropriate format")
 
 if(!identical(animal.names, FALSE)){
 	if(length(animal.names) != length(data$pre.counts[1,1,])) stop("The length of the character vector animal.names does not match the length of the data provided")
@@ -234,7 +234,7 @@ if(sum(control.animals)==0) cat("Assessing the faecal egg count reduction for ",
 if(!skip.mcmc){
 
 	# Get model from fecrt.model:
-	
+
 	prean=presamp=precont <- pre
 	for(a in 1:N){
 		prean[,,a] <- a
@@ -252,16 +252,16 @@ if(!skip.mcmc){
 		postsamp[,s,] <- s
 	}
 	modeldata <- data.frame(Count=c(as.numeric(pre), as.numeric(post)), Sample=c(as.numeric(presamp), as.numeric(postsamp)), Subject=c(as.numeric(prean), as.numeric(postan)), Control=c(as.numeric(precont), as.numeric(postcont)), Time=c(rep(1, length(as.numeric(pre))), rep(2, length(as.numeric(post)))))
-	
+
 	arglist <- passthrough
 	arglist$data <- modeldata
-	
+
 	rjo <- do.call('fecrt.model', arglist, quote=FALSE)
-	
+
 	arguments$runjags.object <- rjo
 	class(arguments) <- 'list'
 	results <- do.call('autoextend.jags', arguments, quote=FALSE)
-	
+
 	#results <- autorun.jags(data=datastring, model=model, monitor=monitor, n.chains=2, inits=c(inits1, inits2), silent.jags = list(silent.jags=silent.jags, killautocorr=TRUE), plots = FALSE, thin.sample = TRUE, interactive=interactive, max.time=max.time, ...)
 
 if(results[1]=="Error"){
@@ -291,31 +291,31 @@ if(any(c(dim(post)[1:2], dim(pre)[1:2])>1)){
 	cat("Bootstrap and WAAVP calculations are not available for repeated pre and/or post treatment egg counts\n")
 	boot.reductions = bootquant = method.boot = waavpquant = method.waavp =bootprob <- NA
 }else{
-	
+
 	pre <- apply(pre.data, 3, mean) # Should only be 1 datapoint
 	post <- apply(post.data, 3, mean) # Should only be 1 datapoint
 	# Just to check:
 	pre2 <- pre.data[1,1,]
 	post2 <- post.data[1,1,]
 	if(any(pre!=pre2) | any(post!=post2)) stop("An unexpected error occured while manipulating the data for the bootstrap/WAAVP methods")
-	
+
 	if(sum(control.animals)>0){
 		warning("Control animals are ignored using the bootstrap and WAAVP calculations")
 		pre <- pre[!control.animals]
 		post <- post[!control.animals]
 	}
-	
+
 	cat("Calculating the Bootstrap and WAAVP method analysis...\n")
 	# Bootstrap:
-	
+
 	boot.pre <- matrix(data=sample(pre, length(pre)*bootstrap.iters, replace=TRUE), ncol=bootstrap.iters, nrow=length(pre))
 	boot.post <- matrix(data=sample(post, length(post)*bootstrap.iters, replace=TRUE), ncol=bootstrap.iters, nrow=length(post))
-	
+
 	boot.reductions <- (1 - apply(boot.post, 2, mean) / apply(boot.pre, 2, mean)) *100
 
 	boot.reductions[boot.reductions==-Inf] <- NA
 	bootprob <- sum(boot.reductions < efficacy, na.rm=TRUE) / sum(!is.na(boot.reductions)) * 100
-	
+
 	bootquant <- quantile(boot.reductions, probs=c(lci, 0.5, uci), na.rm=TRUE)
 	if(is.na(bootprob)){
 		method.boot <- "Returned error"
@@ -324,9 +324,9 @@ if(any(c(dim(post)[1:2], dim(pre)[1:2])>1)){
 	}
 
 	# WAAVP:
-	
+
 	waavpquant <- blankquant
-	
+
 	pre.data <- pre
 	post.data <- post
 
@@ -346,7 +346,7 @@ if(any(c(dim(post)[1:2], dim(pre)[1:2])>1)){
 	waavpquant[1] <- lower.ci
 	waavpquant[2] <- red
 	waavpquant[3] <- upper.ci
-	
+
 	if(any(is.na(c(red,efficacy,lower.ci)))){
 		method.waavp <- "Returned error"
 	}else{
@@ -357,7 +357,7 @@ if(any(c(dim(post)[1:2], dim(pre)[1:2])>1)){
 			method.waavp <- "Confirmed resistant"
 		}
 	}
-	
+
 	if(confidence!=95){
 		waavpquant[] <- NA
 		method.waavp <- "Not available"

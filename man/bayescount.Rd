@@ -2,19 +2,19 @@
 \alias{bayescount}
 \title{Analyse Count data using MCMC}
 \description{
-   Apply a Bayesian [zero-inflated] gamma / Weibull / lognormal / independant / simple Poisson model to count data to return possible values for mean count, coefficient of variation, and zero-inflation.  A text .csv file named [name].[model].csv with the results is optionally written to the working directory (before checking if the file already exists), and an object [name].[model].results is copied to the Global environment within R.  Where more than 1 model is used, a results file and object is created for each model.  Convergence is assessed for each dataset by calculating the Gelman-Rubin statistic for each parameter, see \code{\link[runjags]{autorun.jags}}.  Optionally, the log likelihood for the model fit is also calculated.  The time taken to complete each analysis (not including calculation of the likelihood) is also recorded.  This function is a wrapper for bayescount.single(), allowing extra automation.  The lower level functions in the runjags package are used for calling JAGS.  
+   Apply a Bayesian [zero-inflated] gamma / Weibull / lognormal / independant / simple Poisson model to count data to return possible values for mean count, coefficient of variation, and zero-inflation.  A text .csv file named [name].[model].csv with the results is optionally written to the working directory (before checking if the file already exists), and an object [name].[model].results is copied to the Global environment within R.  Where more than 1 model is used, a results file and object is created for each model.  Convergence is assessed for each dataset by calculating the Gelman-Rubin statistic for each parameter, see \code{\link[runjags]{autorun.jags}}.  Optionally, the log likelihood for the model fit is also calculated.  The time taken to complete each analysis (not including calculation of the likelihood) is also recorded.  This function is a wrapper for bayescount.single(), allowing extra automation.  The lower level functions in the runjags package are used for calling JAGS.
 
-Note: The GUI interface for R in Windows may not continually refresh the output window, making it difficult to track the progress of the simulation (if silent.jags is FALSE).  To avoid this, you can run the function from the terminal version of R (located in the Program Files/R/bin/ folder).  
+Note: The GUI interface for R in Windows may not continually refresh the output window, making it difficult to track the progress of the simulation (if silent.jags is FALSE).  To avoid this, you can run the function from the terminal version of R (located in the Program Files/R/bin/ folder).
 
-   * NOTE: THIS FUNCTION IS DEPRECATED AND WILL BE REMOVED FROM BAYESCOUNT VERSION 1 - SEE \code{\link{count.model}} FOR AN ALTERNATIVE *
+   * NOTE: THIS FUNCTION IS DEPRECATED AND WILL BE REMOVED FROM BAYESCOUNT VERSION 1 - SEE \code{\link{fec.model}} FOR AN ALTERNATIVE *
 
 }
 \usage{
 bayescount(name = NA, data = NA, setnames = NA,
-   model = c("ZILP"), divide.data = 1, 
-   scale.mean = divide.data, remove.all.zeros = TRUE, 
-   test = TRUE, alt.prior = FALSE, write.file = TRUE, 
-   adjust.zi.mean = FALSE, likelihood = FALSE, 
+   model = c("ZILP"), divide.data = 1,
+   scale.mean = divide.data, remove.all.zeros = TRUE,
+   test = TRUE, alt.prior = FALSE, write.file = TRUE,
+   adjust.zi.mean = FALSE, likelihood = FALSE,
    record.chains = FALSE, ...)
 }
 \arguments{
@@ -34,7 +34,7 @@ bayescount(name = NA, data = NA, setnames = NA,
    \item{...}{further arguments to be passed directly to \code{\link[runjags]{autorun.jags}}, including the path to JAGS, number of burnin and sampled iterations, target PSRF, time limit to extend each simulation, etc.  Note that some of the default arguments to autorun.jags are changed by bayescount.single (max.time="1hr", interactive=FALSE, plots=FALSE), but these can be over-ridden.}
 }
 
-\value{No value is returned by this function.  Instead, a text .csv file named *name*.*model*.csv with the results is optionally written to the working directory (before checking if the file already exists), and an object *name*.*model*.results is copied to the Global environment within R (this will over-write any existing object of the same name).  Where more than 1 model is used, a results file and object is created for each model.  
+\value{No value is returned by this function.  Instead, a text .csv file named *name*.*model*.csv with the results is optionally written to the working directory (before checking if the file already exists), and an object *name*.*model*.results is copied to the Global environment within R (this will over-write any existing object of the same name).  Where more than 1 model is used, a results file and object is created for each model.
 
 The results files consist of a table (or matrix) with the following results for each dataset:
 \item{name}{the name of the dataset.  This is a dimnames attribute for matrices.}
@@ -54,11 +54,11 @@ The results files consist of a table (or matrix) with the following results for 
 
 \examples{
 
-# run the function with all values as default, and 'name' and 'data' 
+# run the function with all values as default, and 'name' and 'data'
 # (from a local .csv file) to be input by the user when prompted:
 # bayescount()
 
-# analyse local data (2 datasets with 20 animals each with 10 repeat 
+# analyse local data (2 datasets with 20 animals each with 10 repeat
 # samples) using a zero-inflated lognormal Poisson model:
 \dontrun{
 # Simulate some data:
@@ -69,12 +69,12 @@ for(i in 1:20){
 	data[i,,1] <- rpois(10, means1[i])
 	data[i,,2] <- rpois(10, means2[i])
 }
-# Missing data is permissible but means the likelihood cannot be 
+# Missing data is permissible but means the likelihood cannot be
 # calculated - a warning will be printed:
 data[sample(1:(20*10*2), 10)] <- NA
 try(unlink("analysis.ZILP.csv"), silent=TRUE)
 # Run the analysis:
-bayescount(name="analysis", data=data, model = "ZILP", 
+bayescount(name="analysis", data=data, model = "ZILP",
 setnames=c("Simulated group A", "Simulated group B"), likelihood=TRUE)
 }
 

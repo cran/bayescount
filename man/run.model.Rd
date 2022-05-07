@@ -5,13 +5,13 @@
 \alias{run.model}
 \title{Analyse Count Data Using Jags}
 \description{
-  Apply a Bayesian (zero-inflated) (gamma / Weibull / lognormal / independant / simple) Poisson model to count data to return possible values for mean count, variance, shape paramater, scale parameter (overdispersion or 'k') and zero-infaltion where appropriate to the model selected.  This function generates the model specifications and starting values, and is used by the higher level functions bayescount and bayescount.single, but can also be called directly.
-  
+  Apply a Bayesian (zero-inflated) (gamma / Weibull / lognormal / independant / simple) Poisson model to count data to return possible values for mean count, variance, shape paramater, scale parameter (overdispersion or 'k') and zero-infaltion where appropriate to the model selected.  This function generates the model specifications and starting values, and is used by the higher level function fec.analysis, but can also be called directly.
+
 }
 \usage{
-count.model(data=stop("No data supplied"), 
-   model=stop("No model specified"), call.jags = FALSE, 
-   alt.prior=FALSE, monitor.lambda=FALSE, 
+count.model(data=stop("No data supplied"),
+   model=stop("No model specified"), call.jags = FALSE,
+   alt.prior=FALSE, monitor.lambda=FALSE,
    monitor.deviance=FALSE, ...)}
 
 \arguments{
@@ -19,7 +19,7 @@ count.model(data=stop("No data supplied"),
 
    \item{model}{model to use.  Choices are "GP" (gamma Poisson = negative binomial), "ZIGP" (zero-inflated gamma Poisson = zero-inflated negative binomial), "LP" (lognormal Poisson), "ZILP" (zero-inflated lognormal Poisson), "WP" (Wiebull Poisson), "ZIWP" (zero-inflated Weibull Poisson), "SP" (simple Poisson), "ZISP" (zero-inflated simple Poisson) or "IP" (independant Poisson).  The simple Poisson model forces each count to have the same mean, wheras the independant Poisson process allows each count to have an unrelated mean (therefore a zero-inflated version is not possible).  Default "ZILP".}
 
-   \item{call.jags}{should the function run the model using run.jags?  If TRUE, the model is run and the results are returned, otherwise a compiled but not updated object of class \code{\link[runjags]{runjags-class}} is returned. NOTE: This argument is deprecated - in future only call.jags=FALSE will be permitted.}
+   \item{call.jags}{should the function run the model using run.jags?  If TRUE, the model is run and the results are returned, otherwise a compiled but not updated object of class \code{\link[runjags]{runjags-class}} is returned.}
 
    \item{alt.prior}{should the model run the [ZI] [WP|GP|LP] models using the standard or the alternative prior distribution for variance? (logical)  Can also be a character value of a user-specified prior distribution.  Default FALSE.  Where information concerning overdispersion in the data is sparse, the choice of prior distribution will have an affect on the posterior distribution for ALL parameters.  It is recommended to run a simulation using both types of prior when working with small datasets, to make sure results are consistent.}
 
@@ -34,12 +34,12 @@ count.model(data=stop("No data supplied"),
 }
 
 \seealso{
-   \code{\link{count.analysis}}
+   \code{\link{fec.analysis}}
 }
 
 \examples{
 
-#  Return the model specification and starting values for a 
+#  Return the model specification and starting values for a
 # lognormal Poisson, then run the model using run.jags:
 
 \dontrun{

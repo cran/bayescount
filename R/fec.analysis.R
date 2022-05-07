@@ -1,4 +1,4 @@
-bayescount.single <- function(data = stop("Data must be specified"), model="ZILP", alt.prior = FALSE, adjust.zi.mean = FALSE, raw.output = FALSE, likelihood=FALSE, ...){
+fec.analysis <- function(data = stop("Data must be specified"), model="ZILP", alt.prior = FALSE, adjust.zi.mean = FALSE, raw.output = FALSE, likelihood=FALSE, ...){
 
 
 passthrough <- list(...)
@@ -30,7 +30,7 @@ if(alt.prior!=FALSE & (any(model==c("IP", "SP", "ZISP")))){
 	#  Warning printed in run.model
 }
 
-if(class(raw.output)=="list"){
+if(is.list(raw.output)){
 	record.name <- raw.output$name
 	record.setname <- raw.output$setname
 	record.chains <- TRUE
@@ -50,7 +50,7 @@ true.model <- model
 if(any(model==paste("G", 1:10, sep=""))){
 	true.model <- model
 	model <- "ZIGP"
-}	
+}
 if(any(model==paste("L", 1:10, sep=""))){
 	true.model <- model
 	model <- "ZILP"
@@ -68,7 +68,7 @@ if((length(model) != 1) |  sum(is.na(model)) > 0 | sum(model==models)!=1){
 
 params.names <- switch(model, SP=c("mean"), ZISP=c("mean", "prob"), IP=c("mean", "variance"), LP=c("lmean", "lvariance"), ZILP=c("lmean", "lvariance", "prob"), GP=c("mean", "shape"), ZIGP=c("mean", "shape", "prob"), WP=c("a", "b"), ZIWP=c("a", "b", "prob"))
 
-n.params <- switch(model, SP=1, ZISP=2, IP=2, LP=2, ZILP=3, GP=2, ZIGP=3, WP=2, ZIWP=3) 
+n.params <- switch(model, SP=1, ZISP=2, IP=2, LP=2, ZILP=3, GP=2, ZIGP=3, WP=2, ZIWP=3)
 
 errorpad <- quantile(0, probs=c(0.025, 0.5, 0.975, 1))
 names(errorpad)[4] <- "MAX.OBS"
@@ -112,14 +112,14 @@ unavailablelike <- FALSE
 likeadjust <- 1
 
 if(likelihood==TRUE){
-	
-	if(class(data)=="list"){
+
+	if(is.list(data)){
 		warning("The likelihood computation is not available for data provided as a list so has not been calculated")
 		likelihood <- FALSE
 		unavaiablelike <- TRUE
 	}
-	
-	if(class(data)=="matrix"){
+
+	if(is.matrix(data)){
 		if(ncol(data)==1){
 			data <- as.integer(data)
 		}else{
@@ -136,7 +136,7 @@ if(likelihood==TRUE){
 		}
 	}
 	if(likelihood) params.names <- c(params.names, "likelihood")
-}	
+}
 
 oldtwo = oldone <- matrix(NA, ncol=n.params.inc.lambda, nrow=0)
 
@@ -167,17 +167,17 @@ success <- try({
 	}, silent=FALSE)
 
 time.taken <- timestring(start.time, Sys.time(), units='s', show.units=FALSE)
-if(class(success)=="try-error" | success[1]=="Error"){
+if(inherits(success, "try-error") || success[1]=="Error"){
 	cat("There was an error during the simulation\n")
 	errorcode <- 5
-	
-	if(class(success)!="try-error"){
+
+	if(!inherits(success, "try-error")){
 		if(success[2] == "The simulation was aborted due to crashes"){
 			cat("\nSimulation aborted due to crashes\n\n")
 			errorcode <- 1
 		}
 	}
-	
+
 	if(raw.output==TRUE){
 		return(list(mcmc=matrix(NA, ncol=n.params.inc.lambda+likelihood, nrow=1, dimnames=list(NA, params.names)), end.state=NA, samples=NA, samples.to.conv=NA, summary=NA, psrf=NA, autocorr=NA, trace=NA, density=NA, time.taken=time.taken))
 	}else{
@@ -284,7 +284,7 @@ if(model=="LP"){
 	mean <- normal.meanvar[[1]]
 	variance <- normal.meanvar[[2]]^2
 	dispersion <- ((exp(lvariance)) - 1)^0.5
-	
+
 	#if(exists("zilp.type")){
 	#	if(zilp.type==2){
 	#		lvariance <- (c(as.matrix((one[,2])), as.matrix((two[,2]))))^2
@@ -306,7 +306,7 @@ if(model=="LP"){
 	#		variance <- (normal.params(lmean, sqrt(lvariance))[[2]])^2
 	#	}
 	#}
-	
+
 	#if(likelihood==TRUE){
 		#for(i in 1:length(data)){
 			#lambda[,i] <- c(as.matrix(one[,i+2+as.numeric(zero.inflation)]), as.matrix(two[,i+2+as.numeric(zero.inflation)]))
@@ -339,10 +339,10 @@ if(model=="WP"){
 	variance <- b^2/a * (2 * gamma(2/a) - (1 / a * gamma(1/a)^2))
 	shape <- a
 	scale <- b
-	
-	
+
+
 	dispersion <- variance^0.5 / mean
-	
+
 	#if(likelihood==TRUE){
 	#	for(i in 1:length(data)){
 	#		lambda[,i] <- c(as.matrix(one[,i+2+as.numeric(zero.inflation)]), as.matrix(two[,i+2+as.numeric(zero.inflation)]))
@@ -359,13 +359,13 @@ if(zero.inflation==TRUE & model!="SP"){
 	prob <- c(as.matrix(one[,3]), as.matrix(two[,3]))
 	zi <- (1- prob) * 100
 }
-		
+
 if(adjust.mean==TRUE && zero.inflation==TRUE){
 	mean <- mean * prob
-}	
+}
 }, silent = FALSE)
 
-if(class(success)=="try-error"){
+if(inherits(success, "try-error")){
 	cat("There was an error calculating the results\n")
 	if(raw.output==TRUE){
 		return(list(mcmc=matrix(NA, ncol=n.params.inc.lambda+likelihood, nrow=1, dimnames=list(NA, params.names)), end.state=NA, samples=NA, samples.to.conv=NA, summary=NA, psrf=NA, autocorr=NA, trace=NA, density=NA, time.taken=time.taken))
@@ -431,14 +431,14 @@ if(model=="LP"){
 
 if(n.params==1) mpsrf <- convergence$psrf[1,1] else mpsrf <- convergence$mpsrf
 
-if(class(mpsrf)=="character") mpsrf <- NA
+if(is.character(mpsrf)) mpsrf <- NA
 
 results <- c(results, mpsrf=mpsrf)
 
 if(likelihood==TRUE){
 	# Old likelihoods calculated manually:
 	if(TRUE){
-		
+
 	suppressWarnings(success <- try({
 	if(zero.inflation==FALSE){
 		l.zi <- NA
@@ -456,7 +456,7 @@ if(likelihood==TRUE){
 		likecoeff <- newmeanvar[[3]]
 		likevar <- (likemean/likecoeff)^2
 		likeli <- likelihood(model=model, data=likedata, mean=likemean, variance=likevar, zi=l.zi, silent=paste("noziwarn", silent.jags, sep=""), log=TRUE, raw.output=TRUE)  # Leave iterations as default (1000)
-		
+
 	}
 	if(model=="SP"){
 		likeli <- likelihood(model=model, data=likedata, mean=mean*likeadjust, zi=l.zi, silent=paste("noziwarn", silent.jags, sep=""), log=TRUE, raw.output=TRUE)  # Leave iterations as default
@@ -464,20 +464,20 @@ if(likelihood==TRUE){
 	if(model=="IP"){
 		likeli <- likelihood(model=model, data=likedata, mean=lambda*likeadjust, zi=l.zi, silent=paste("noziwarn", silent.jags, sep=""), log=TRUE, raw.output=TRUE)
 	}}, silent=FALSE))
-	
-	if(class(success)=="try-error"){
+
+	if(inherits(success, "try-error")){
 		cat("An error occured while computing the likelihood\n")
 		likeli <- list(NA, NA)
 	}else{
 		if(silent.jags) cat("Finished calculating the likelihood\n")
 	}
-	
+
 	}else{
 		# New likelihoods based on deviance:
 		likeli <- as.numeric(combine.mcmc(output$mcmc)[,"deviance"])/-2
-		
+
 	}
-	
+
 	#print(sum(is.na(likeli[[1]])))
 	#assign('like', likeli, pos=.GlobalEnv)
 	if(any(is.na(likeli[[1]]))){
@@ -496,60 +496,60 @@ if(unavailablelike==TRUE){
 }
 
 if(raw.output==TRUE & (likelihood==TRUE | unavailablelike==TRUE)){
-	
+
 	# No longer need to append likelihoods to each chain - deviance is there already:
 	#if(FALSE){
 	success <- try({
-	
+
 	one.backup <- one
 	two.backup <- two
-	
+
 	newone <- matrix(NA, nrow=nrow(one), ncol=ncol(one)+1)
 	newtwo <- matrix(NA, nrow=nrow(two), ncol=ncol(two)+1)
-	
+
 	newone[,1:ncol(one)] <- one
 	newtwo[,1:ncol(two)] <- two
-	
+
 	dimnames(newone) <- list(NULL, c(dimnames(one)[[2]], "likelihood"))
-	dimnames(newtwo) <- list(NULL, c(dimnames(two)[[2]], "likelihood"))	
-	
+	dimnames(newtwo) <- list(NULL, c(dimnames(two)[[2]], "likelihood"))
+
 	one <- newone
 	two <- newtwo
-	
+
 	sequence <- numeric(length=(length(one[,1]) + length(two[,1])))
-	
+
 	sequence[] <- NA
-	
+
 	if(unavailablelike==FALSE){
 		sequence[likeli[[2]]] <- likeli[[1]]
-	}	
-	
+	}
+
 	one[,length(one[1,])] <- sequence[1:length(one[,1])]
 	two[,length(two[1,])] <- sequence[(length(one[,1])+1):(length(one[,1])+length(two[,1]))]
-	
+
 	}, silent=FALSE)
-	
-	if(class(success)=="try-error"){
+
+	if(inherits(success, "try-error")){
 		cat("An error occured while combining the chains with the calculated likelihoods.  The likelihoods will not be returned\n")
 		one <- one.backup
 		two <- two.backup
 	}
 	#}
-	
+
 	mcmc <- coda::mcmc.list(coda::as.mcmc(one), coda::as.mcmc(two))
 
 #	mcmc[[1]][,"deviance"] <- mcmc[[1]][,"deviance"]/-2
 #	mcmc[[2]][,"deviance"] <- mcmc[[2]][,"deviance"]/-2
-	
+
 #	varnames(mcmc)[nvar(mcmc)] <- "likelihood"
-	
+
 	if(converged==FALSE){
 		cat("Returning UNCONVERGED results\n")
 	}else{
 		cat("Returning results\n")
 	}
 	cat("*PLEASE NOTE:  THIS SOFTWARE IS INTENDED FOR EDUCATIONAL PURPOSES ONLY AND SHOULD NOT BE RELIED UPON FOR REAL WORLD APPLICATIONS*\n\n")
-	
+
 	return(list(mcmc=mcmc, end.state=output$end.state, samples=output$sample, samples.to.conv=output$burnin, summary=output$summary, psrf=output$psrf, autocorr=output$autocorr, trace=trace, density=density, time.taken=time.taken))
 }
 
@@ -573,8 +573,8 @@ results <- as.numeric(results)
 names(results) <- names
 return(results)
 
-}	
+}
 
-fec.analysis <- bayescount.single
-FEC.analysis <- bayescount.single
-count.analysis <- bayescount.single
+bayescount.single <- fec.analysis
+FEC.analysis <- fec.analysis
+count.analysis <- fec.analysis

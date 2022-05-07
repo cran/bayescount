@@ -19,15 +19,12 @@ lnormal.params(mean, sd, coeff.variation)}
 
 \examples{
 
-\dontrun{
 mean <- 10
 sd <- 2
 lmean <- lnormal.params(mean,sd)[[1]]
 lsd <- lnormal.params(mean,sd)[[2]]
 
-curve(dnorm(x, mean, sd), from=0, to=20)
-dev.new()
-curve(dlnorm(x, lmean, lsd), from=0, to=20)
-}
+curve(dnorm(x, mean, sd), from=0, to=20, col="blue")
+curve(dlnorm(x, lmean, lsd), from=0, to=20, add=TRUE, col="red")
 }
 \keyword{methods}

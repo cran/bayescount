@@ -19,16 +19,13 @@ normal.params(log.mean, log.sd, coeff.variation=sqrt(exp(log.sd^2)-1))}
 
 \examples{
 
-\dontrun{
 lmean <- 2.5
 lsd <- 0.2
 mean <- normal.params(lmean,lsd)[[1]]
 sd <- normal.params(lmean,lsd)[[2]]
 
-curve(dlnorm(x, lmean, lsd), from=0, to=25)
-dev.new()
-curve(dnorm(x, mean, sd), from=0, to=25)
-}
+curve(dlnorm(x, lmean, lsd), from=0, to=25, col="blue")
+curve(dnorm(x, mean, sd), from=0, to=25, add=TRUE, col="red")
 
 }
 \keyword{methods}

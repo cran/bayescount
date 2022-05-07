@@ -1,7 +1,7 @@
 bayescount <- function(name = NA, data = NA, setnames = NA, model = c("ZILP"), divide.data = 1, scale.mean = divide.data, remove.all.zeros = TRUE, test = TRUE, alt.prior = FALSE, write.file = TRUE, adjust.zi.mean = FALSE, likelihood=FALSE, record.chains=FALSE, ...)
 {
 
-	warning('The bayescount function is deprecated and will be removed from version 1.0 of bayescount (expected to be released in mid 2015)')
+  .Deprecated('fec.analysis', 'bayescount')
 
 datanames <- setnames
 omit.zeros <- remove.all.zeros
@@ -43,8 +43,8 @@ for(i in 1:length(model)){
 models <- c("SP", "ZISP", "GP", "ZIGP", "WP", "ZIWP", "LP", "ZILP", "IP")
 modelsfull <- c("single Poisson", "zero-inflated single Poisson", "gamma Poisson", "zero-inflated gamma Poisson", "Weibull Poisson", "zero-inflated Weibull Poisson", "lognormal Poisson", "zero-inflated lognormal Poisson", "independant Poisson")
 
-if(class(alt.prior)=="character"){
-	stop("'alt.prior' must be either TRUE or FALSE for bayescount().  Use bayescount.single() for custom priors")
+if(is.character(alt.prior)){
+	stop("'alt.prior' must be either TRUE or FALSE for bayescount().  Use fec.analysis() for custom priors")
 }
 
 
@@ -82,7 +82,7 @@ if(length(duplicated) > 1){
 		model[model==duplicated[i]] <- ""
 		model <- c(model, duplicated[i])
 	}
-	model <- model[model!=""]	
+	model <- model[model!=""]
 }
 
 models.nos <- 1:length(models)
@@ -101,56 +101,56 @@ if(sum(model=="ZISP") > 0 | sum(model=="ZIGP") > 0 | sum(model=="ZILP") > 0 | su
 	any.zero.inflation <- FALSE
 }
 
-if(class(data)=="function") stop("The class of the object supplied for data is a function")
+if(is.function(data)) stop("The class of the object supplied for data is a function")
 
 
 
-if(class(data)=="list"){
-	
-	if(suppressWarnings(class(data$totals) != "NULL" & class(data$repeats) != "NULL")){
+if(is.list(data)){
+
+	if(suppressWarnings(class(data$totals)[1] != "NULL" & class(data$repeats)[1] != "NULL")){
 		# data is a list of counts and repeats
 		totals <- as.matrix(data$totals / divide.data)
 		repeats <- as.matrix(data$repeats)
-		
+
 		div <- 1 # This stops the list type data being divided twice
-		
+
 		if(length(totals[1,])!=length(repeats[1,])) stop("The number of datasets is not equal between repeats and totals")
 		if(length(totals[,1])!=length(repeats[,1])) stop("The number of repeats does not match the length of totals")
-		
+
 		n.datasets <- length(totals[1,])
-		
+
 		data <- array(NA, dim=c(length(totals[,1]), max(repeats), n.datasets))
-		
+
 		for(j in 1:n.datasets){
 		for(i in 1:length(totals[,j])){
 			if(is.na(totals[i,j]) & is.na(repeats[i,j])) next
 			if(round(totals[i,j])!=totals[i,j]) stop("All totals must be an integer (after division by divide.data)")
 			if(round(repeats[i,j])!=repeats[i,j] | repeats[i,j] < 1) stop("All repeats must be an integer greater than 0")
-			
+
 			if(repeats[i,j] > 1){
 
 				done <- FALSE
-	
+
 				while(!done){
 					data[i,1:repeats[i,j],j] <- rpois(repeats[i,j], totals[i,j]/repeats[i,j])
 					if(sum(data[i,,j],na.rm=TRUE)==totals[i,j] & all(na.omit(data[i,,j]) >= 0)) done <- TRUE
-		
+
 				}
 			}else{
 				data[i,1,j] <- totals[i,j]
 			}
 		}
 		}
-		
+
 	}else{
-		
+
 		stop("Data was provided as a list without elements 'totals' and 'repeats'.  To use a list of repeat samples from a single dataset, use bayescount.single()")
 	}
 }
-	
-if(class(data)=="array" & length(dim(data)) != 3) stop(paste("Data was provided as an array with ", length(dim(data)), " dimensions.  Arrays must have 3 dimensions (even if the third dimension is of length 1", sep=""))
 
-if(class(data)=="numeric" | class(data)=="integer") data <- as.matrix(data)
+if(inherits(data, "array") && length(dim(data)) != 3) stop(paste("Data was provided as an array with ", length(dim(data)), " dimensions.  Arrays must have 3 dimensions (even if the third dimension is of length 1", sep=""))
+
+if(!is.array(data) && (is.numeric(data) || is.integer(data))) data <- as.matrix(data)
 
 cat("\n--- 'Bayescount': Analyse count data using a Bayesian distributional simulation model implemented in JAGS ---\n\n")
 cat("*PLEASE NOTE:  THIS SOFTWARE IS INTENDED FOR EDUCATIONAL PURPOSES ONLY AND SHOULD NOT BE RELIED UPON FOR REAL WORLD APPLICATIONS*\n")
@@ -160,7 +160,7 @@ if(is.na(runname)){
 	runname <- ask(prompt = "Please enter a name for this analysis:  ", type="character")
 }
 
-if(class(data)=="array" & identical(setnames[1],TRUE)) stop("Setnames cannot be TRUE for data provided as a list or array; please provide setnames manually or allow them to be generated automatically")
+if(inherits(data, "array") & identical(setnames[1],TRUE)) stop("Setnames cannot be TRUE for data provided as a list or array; please provide setnames manually or allow them to be generated automatically")
 
 datain <- data
 datana <- data
@@ -171,22 +171,22 @@ dataok=FALSE
 
 setnamesheader <- identical(setnames, TRUE)
 
-if(class(data)=="array" | class(data)=="matrix"){
+if(inherits(data, "array") | inherits(data, "matrix")){
 	dataok <- TRUE
 }else{
 	if(is.na(datana)==FALSE){
 	exists <- try(file.exists(datana), silent=TRUE)
-	if((class(exists)=="try-error")==FALSE){
+	if((!inherits(exists, "try-error"))){
 		if(exists==TRUE){
 			suppressWarnings(data <- try(read.csv(datain, header=setnamesheader), silent=TRUE))
 		}
 	}
 	suppressWarnings(valid.data <- try((length(as.matrix(data[,1])) > 1), silent=TRUE))
-	if((class(valid.data)=="try-error")==TRUE){
+	if((inherits(valid.data, "try-error"))){
 		cat("ERROR:  The path you have entered does not appear to be valid\n")
 	}else{
 		if(valid.data==FALSE){
-			cat("ERROR:  Invalid path / data\n") 
+			cat("ERROR:  Invalid path / data\n")
 		}else{
 			dataok=TRUE
 		}
@@ -202,12 +202,12 @@ while(dataok==FALSE){
 		stop("User exited the program")
 	}
 	exists <- try(file.exists(datain), silent=TRUE)
-	if((class(exists)=="try-error")==FALSE){
+	if((!inherits(exists, "try-error"))){
 		if(exists==TRUE){
 		data <- try(read.csv(datain, header=FALSE), silent=TRUE)
-		if((class(data)=="try-error")==FALSE){
+		if((!inherits(data, "try-error"))){
 			valid.data <- try(length(data[,1]) > 1, silent=TRUE)
-			if((class(valid.data)=="try-error")==TRUE){
+			if((inherits(valid.data, "try-error"))){
 				cat("ERROR:  The path you have entered does not appear to be valid\n")
 			}else{
 				if(valid.data==FALSE){
@@ -248,7 +248,7 @@ if(identical(setnames[1],TRUE)){
 		namesdone <- TRUE
 	}
 	if(is.na(setnames[1])){
-		if(class(dimnames(data)[[length(dim(data))]]) == "character"){
+		if(is.character(dimnames(data)[[length(dim(data))]])){
 			names <- dimnames(data)[[length(dim(data))]]
 		}else{
 			names <- paste("Dataset ", 1:dim(data)[length(dim(data))], sep="")
@@ -262,108 +262,16 @@ if(!namesdone){
 	names <- setnames
 }
 
-if(class(data)=="data.frame") data <- matrix(unlist(data), nrow=dim(data)[1])
+if(inherits(data, "data.frame")) data <- matrix(unlist(data), nrow=dim(data)[1])
 
-if(class(data) == "matrix")	data <- array(data, dim=c(nrow(data), 1, ncol(data)), dimnames=list(NULL, NULL, dimnames(data)[[2]]))
+if(inherits(data, "matrix"))	data <- array(data, dim=c(nrow(data), 1, ncol(data)), dimnames=list(NULL, NULL, dimnames(data)[[2]]))
 
-
-if(class(data)!="array" | length(dim(data)) != 3) stop("An error occured while transforming the data to an appropriate format")
+if(!inherits(data, "array") || length(dim(data)) != 3) stop("An error occured while transforming the data to an appropriate format")
 
 rownames <- FALSE # no longer using rownames
 
 
 
-if(FALSE){  # ALL NOT BEING USED
-
-names <- NA
-
-if(namesdone==FALSE){
-	if(length(setnames) != 1 | setnames[1] != FALSE){
-		if(length(setnames) != dim(data)[3]) stop("The length of the character vector setnames does not match the lenth of the data provided")
-		names <- setnames
-		namesdone <- TRUE
-	}else{
-		if(class(dimnames(data)[[3]]) == "character"){
-			names <- dimnames(data)[[3]]
-		}else{
-			names <- paste("Dataset ", 1:dim(data)[[3]], sep="")
-		}
-	}
-}
-
-
-
-if(is.na(datanames[1])==FALSE){
-	if(datanames[1]!=TRUE){
-		if(datanames[1]!=FALSE){
-			if(rownames==FALSE){
-				if(length(datanames)!=dim(data)[3]){
-					stop("The length of the character vector setnames does not match the lenth of the data provided")
-				}
-			}else{
-				if(length(datanames)!=(dim(data)[3]-1)){
-					stop("The length of the character vector setnames does not match the lenth of the data provided")
-				}
-			}
-			names <- datanames
-			datanames <- TRUE
-		}
-	}
-}
-
-if(is.na(datanames[1])==TRUE){
-	suppressWarnings(try({
-		if(any(is.na(as.numeric(na.omit(data[1,1,]))))){
-			names <- data[1,1,]
-			data <- array(data[2:length(data[,1,1]),,], dim=c(dim(data)[1]-1, dim(data)[2], dim(data)[3]))
-			datanames <- TRUE
-		}else{
-			if(class(dimnames(data)[[3]]) == "character"){
-				names <- dimnames(data)[[3]]
-				datanames <- TRUE
-			}else{
-				datanames <- FALSE
-			}
-		}
-	}, silent=TRUE))
-}
-
-if(is.na(names)) names <- paste("Dataset ", 1:dim(data)[[3]], sep="")
-if(FALSE){  # Not using this since rownames=FALSE and data is now an array
-if(is.na(names[1])==FALSE){
-	if(rownames==TRUE){
-		ind.names <- data[ ,1]
-		data <- data[ , 2:length(data[1,])]
-	}else{
-		ind.names <- paste("Row ", 1:length(data[,1]), sep="")
-	}
-}else{
-	if(rownames==TRUE){
-		if(datanames==TRUE){
-			ind.names <- data[2:length(data[,1]),1]
-			names <- data[1,2:length(data[1,])]
-			data <- data[2:length(data[,1]), 2:length(data[1,])]
-		}else{
-			ind.names <- data[ ,1]
-			names <- 1:(length(data[1,])-1)
-			names <- paste("Dataset ", names, sep="")
-			data <- data[ , 2:length(data[1,])]
-		}
-	}else{
-		if(datanames==TRUE){
-			ind.names <- paste("Row ", 1:(length(data[,1])-1), sep="")
-			names <- data[1,]
-			data <- data[2:length(data[,1]), ]
-		}else{
-			ind.names <- paste("Row ", 1:length(data[,1]), sep="")
-			names <- 1:length(data[1,])
-			names <- paste("Dataset ", names, sep="")
-		}
-	}
-
-}
-}
-}  # END NOT BEING USED
 
 
 dimensions <- dim(data)
@@ -382,7 +290,7 @@ if(div==1 & length(data) > 1){
 		}
 	}
 }
-			
+
 #print(names)
 #print(data)
 #stop()
@@ -436,7 +344,7 @@ cat("\n\nTesting the model function\n")
 s1 <- try(testmod <- run.model(model = model[1], jags = jags, data = setdata, alt.prior = alt.prior, silent.jags = TRUE, summarise=FALSE))
 s2 <- try(output <- extend.jags(testmod, burnin=1000, sample=1000, jags = jags, silent.jags = TRUE, summarise=FALSE))
 
-if(class(s1)=="try-error" || class(s2)=='try-error'){
+if(inherits(s1, "try-error") || inherits(s2, "try-error")){
 	proceed <- ask(prompt = "The test (first) dataset returned an error.  Continue with other datasets?", type="logical")
 }else{
 	cat("Test completed successfully\n")
@@ -468,40 +376,40 @@ for(j in 1:length(all.models)){
 
 	headers <- c(headers, "mean.l.95", "mean.median", "mean.u.95")
 	resultscol <- resultscol + 3
-	
+
 	headers <- c(headers, "coeff.variation.l.95", "coeff.variation.median", "coeff.variation.u.95")
 	resultscol <- resultscol + 3
-	
+
 	if(model=="ZIGP" | model=="ZILP" | model=="ZIWP" | model=="ZISP" | any(strsplit(model, "")[[1]][2]==1:10)){
 		headers <- c(headers, "zi.l.95", "zi.median", "zi.u.95")
 		resultscol <- resultscol + 3
 	}
-	
+
 	if(model=="GP" | model=="ZIGP" | model=="WP" | model=="ZIWP" | strsplit(model, "")[[1]][1]=="G"){
 		headers <- c(headers, "scale.l.95", "scale.median", "scale.u.95")
 		resultscol <- resultscol + 3
 		headers <- c(headers, "shape.l.95", "shape.median", "shape.u.95")
 		resultscol <- resultscol + 3
 	}
-	
+
 	if(model=="LP" | model=="ZILP" | strsplit(model, "")[[1]][1]=="L"){
 		headers <- c(headers, "log.mean.l.95", "log.mean.median", "log.mean.u.95")
 		resultscol <- resultscol + 3
 		headers <- c(headers, "log.variance.l.95", "log.variance.median", "log.variance.u.95")
 		resultscol <- resultscol + 3
 	}
-	
+
 	headers <- c(headers, "multivariate.psrf")
 	resultscol <- resultscol + 1
-	
+
 	if(likelihood==TRUE){
 		headers <- c(headers, "likelihood.l.95", "likelihood.median", "likelihood.u.95", "likelihood.MAX.OBS")
 		resultscol <- resultscol + 4
 	}
-	
+
 	headers <- c(headers, "time.taken")
 	resultscol <- resultscol + 1
-	
+
 	zeros <- character(length=resultscol)
 	zeros[] <- NA
 	zeros[2] <- 3
@@ -513,15 +421,15 @@ for(j in 1:length(all.models)){
 	unconverged <- 0
 	error <- 0
 	largeod <- 0
-	
+
 	name <- new_unique(name=paste(runname, ".", model, sep=""), suffix=".csv", ask = test*write.file, prompt="A results file with this name already exists.  Overwrite?")
 	outfile <- file(name, 'w')
 	cat("dataset,", headers, file = outfile, sep = "")
-	
+
 	for(i in 1:length(names)){
 		done <- FALSE
 		setdata <- data[,,i]
-		
+
 		if(remove.missing==TRUE){
 			#setdata <- as.matrix(na.omit(data[,,i]))  Handled by run.model now
 		}else{
@@ -546,7 +454,7 @@ for(j in 1:length(all.models)){
 			#	cat("\n*WARNING*  There are ", sum(is.na(setdata)), " missing and/or non-numeric datapoints in dataset '", names[i], "'\n", sep="")
 			#}
 			output <- bayescount.single(model=model, data = setdata, alt.prior = alt.prior, adjust.zi.mean = adjust.zi.mean, likelihood=likelihood, raw.output=if(record.chains){list(name=paste(strsplit(name, ".csv")[[1]], collapse=".csv"), setname=names[i])}else{FALSE}, silent.jags=silent.jags, ...)
-			
+
 			if(((output[2]=="1") | (output[2]=="5")) && (sum(na.omit(output[1] == "1")) == 0)){
 				cat("The ", model, " model for dataset '", names[i], "' returned an error", sep="")
 				tries.left <- tries.left-1
@@ -561,7 +469,7 @@ for(j in 1:length(all.models)){
 			}
 		}
 		post.time <- Sys.time()
-		
+
 #		if(output[2]=="1"){
 #			#crashed <- crashed + 1 #Getting rid of crashed for now
 #			#total.crashed <- total.crashed + 1
@@ -581,18 +489,18 @@ for(j in 1:length(all.models)){
 				cat("*WARNING*  The PSRF for the ", model, " model for dataset '", names[i], "' increased above the convergence target for the final chains\n", sep="")
 			}
 		}
-		
-		if(sum(na.omit(output[1] == "1")) == 1){			
+
+		if(sum(na.omit(output[1] == "1")) == 1){
 			largeod <- largeod + as.numeric(assess.variance(model=list(model=model, alt.prior=alt.prior, l.95=output["coeff.variation.l.95"], u.95=output["coeff.variation.u.95"])))
 		}
 
 		success <- try(results[i,] <- as.numeric(output))
-		if(class(success)=="try-error"){
+		if(inherits(success, "try-error")){
 			if(!any(output[2]==1:5)){ # pick up any errors that are missed because of strange returns
 				error <- error + 1
 				total.error <- total.error + 1
 			}
-			
+
 			cat("ERROR: Expecting ", length(results[i,]), " values representing ", headers, " and got '", paste(names(output), collapse=", "), "'.\n", sep="")
 			warning(paste("Expecting ", length(results[i,]), " values representing ", headers, " and got '", paste(names(output), collapse=", "), "' for dataset ", names[i], " with the ", model, " model.", sep=""))
 		}else{
@@ -606,12 +514,12 @@ for(j in 1:length(all.models)){
 		current.number <- ((j-1) * length(names)) + i
 		percent.complete <- current.number / number.models
 		time.remaining <- timestring((as.integer(difftime(post.time, start.time, units="secs")) / percent.complete) - as.integer(difftime(post.time, start.time, units="secs")), show.units=TRUE)
-		
+
 		if(sum(na.omit(setdata)) > 0 || omit.zeros==FALSE){
 			cat("Dataset '", names[i], "' completed in ", time.taken, " with the ", model, " model\n", sep="")
 		}
 		cat(i+(length(names)*(j-1)), " of ", number.models, " datasets (", round(percent.complete, digits=2)*100, "%) completed\n", sep="")
-		cat(total.time, " elapsed, estimated time remaining: ", time.remaining, "\n", sep="") 
+		cat(total.time, " elapsed, estimated time remaining: ", time.remaining, "\n", sep="")
 		if(j > 1){
 			cat(unconverged, " failed convergence, and ", error, " quit with an error with the ", model, " model\n", sep="")
 			cat(total.unconverged, " failed convergence, and ", total.error, " quit with an error for all models\n", sep="")
