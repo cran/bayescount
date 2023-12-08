@@ -1,12 +1,12 @@
 Package: bayescount
 Title: Power Calculations and Bayesian Analysis of Count Distributions
         and FECRT Data using MCMC
-Version: 0.9.99-8
-Date: 2022-05-07
+Version: 0.9.99-9
+Date: 2023-12-08
 Authors@R: person("Matthew", "Denwood", role=c("aut","cre"), email="md@sund.ku.dk")
 Depends: R (>= 2.14.0)
 Imports: runjags (>= 2.0.1), rjags, coda, stats, utils
-SystemRequirements: JAGS (http://mcmc-jags.sourceforge.net)
+SystemRequirements: JAGS (https://mcmc-jags.sourceforge.net)
 Description: A set of functions to allow analysis of count data (such
         as faecal egg count data) using Bayesian MCMC methods.  Returns
         information on the possible values for mean count, coefficient
@@ -18,10 +18,10 @@ Description: A set of functions to allow analysis of count data (such
         Bayesian MCMC.  Functions to perform power analyses for faecal
         egg counts (including FECRT) are also provided.
 License: GPL-2
-URL: http://bayescount.sourceforge.net
+URL: https://bayescount.sourceforge.net
 NeedsCompilation: yes
-Packaged: 2022-05-07 13:39:20 UTC; matthewdenwood
+Packaged: 2023-12-08 11:58:27 UTC; matthewdenwood
 Author: Matthew Denwood [aut, cre]
 Maintainer: Matthew Denwood <md@sund.ku.dk>
 Repository: CRAN
-Date/Publication: 2022-05-07 15:00:02 UTC
+Date/Publication: 2023-12-08 13:10:02 UTC

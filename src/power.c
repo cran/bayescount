@@ -272,7 +272,7 @@ for(set=0; set<maxiterations[0]; set++){
 	meancounts[set] = meancount;
 
 	if(print[0]){
-		Rprintf("%f%% complete\r", set/maxiterations[0]);
+		Rprintf("%f%% complete\r", (double)set / (double)maxiterations[0]);
 	}
 }
 
@@ -447,7 +447,7 @@ for(set=maxiterations[0]; set--; ){
 	meancounts[set] = meancount;
 
 	if(print[0]){
-		Rprintf("%f%% complete\r", set/maxiterations[0]);
+		Rprintf("%f%% complete\r", (double)set / (double)maxiterations[0]);
 	}
 }
 
@@ -747,7 +747,7 @@ for(set=0; set<maxiterations[0]; set++){
 	meanreds[set] = meanred;
 
 	if(print[0]){
-		Rprintf("%f%% complete\r", set/maxiterations[0]);
+		Rprintf("%f%% complete\r", (double)set / (double)maxiterations[0]);
 	}
 }
 
@@ -865,7 +865,7 @@ for(set=0; set<maxiterations[0]; set++){
 	meanreds[set] = meanred;
 
 	if(print[0]){
-		Rprintf("%f%% complete\r", set/maxiterations[0]);
+		Rprintf("%f%% complete\r", (double)set / (double)maxiterations[0]);
 	}
 }
 

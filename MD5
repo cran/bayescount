@@ -1,5 +1,5 @@
 8197a9fcd6da4b09bfe2ebf608bf167f *CHANGELOG
-9bbc0fc52d45488f954db2f03150ba4f *DESCRIPTION
+6c3a31600d20912f75c4762a80226000 *DESCRIPTION
 baf4b48080ec45586fde8bcf231a709c *NAMESPACE
 4f8657b7f3540c55003cd34cecb66552 *R/bayescount.R
 169639d3dd0560619bf908524bf3464a *R/fec.analysis.R
@@ -26,7 +26,7 @@ d5756d06a7df44bcfecceefdc63ef05d *man/likelihood.Rd
 0aca44065c3f50424599151d7213295f *man/normal.params.Rd
 5c01d3b4f2b1da8bf675a1d852ccfc9f *man/run.model.Rd
 79f66f6d9cc2554075a23f655c1adf8d *src/init.c
-55ec5f0589a1205d120ab36839eb39d4 *src/power.c
+f46580bd0424610675e133462d8f8cdf *src/power.c
 fe8893bbd175b059495e9ba4b9ec5538 *tests/bayescount_example.R
 1e14c0e91d9056b40d6678c094a5d451 *tests/count.model_examples.R
 4ba3ddf074f2c6d0ee501afb8536d8e7 *tests/fec.analysis_examples.R
